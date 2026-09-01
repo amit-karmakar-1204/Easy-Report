@@ -25,6 +25,8 @@ export interface ERPContextType {
   updatePurchase: (id: string, updates: Partial<Purchase>) => void;
   addInventoryItem: (item: Omit<InventoryItem, "id">) => InventoryItem;
   updateInventoryItem: (id: string, updates: Partial<InventoryItem>) => void;
+  updateParty: (id: string, updates: Partial<PartyAccount>) => void;
+  addParty: (party: Omit<PartyAccount, "id" | "transactions">) => PartyAccount;
   recordPartyPayment: (
     partyId: string,
     amount: number,
@@ -32,7 +34,7 @@ export interface ERPContextType {
     date: string,
   ) => void;
   generatePurchaseReturn: (itemIds: string[]) => void;
-  reorderItem: (code: string) => void;
+  reorderItem: (code: string, qty?: number) => void;
   metrics: {
     todayProfit: number;
     expiredItemsCount: number;
@@ -586,6 +588,59 @@ const defaultParties: PartyAccount[] = [
   },
 ];
 
+const defaultPerformanceItems: PerformanceItem[] = [
+  {
+    id: "p1",
+    code: "PRD-8902",
+    name: "Industrial Widget A",
+    totalPurchased: 5000,
+    totalSold: 4850,
+    currentStock: 150,
+    velocity: "Fast Moving",
+    reorderRequired: true,
+  },
+  {
+    id: "p2",
+    code: "PRD-4411",
+    name: "Connector Cable 2m",
+    totalPurchased: 2000,
+    totalSold: 800,
+    currentStock: 1200,
+    velocity: "Average",
+    reorderRequired: false,
+  },
+  {
+    id: "p3",
+    code: "PRD-1092",
+    name: "Hydraulic Valve Set",
+    totalPurchased: 300,
+    totalSold: 40,
+    currentStock: 260,
+    velocity: "Slow Moving",
+    reorderRequired: false,
+  },
+  {
+    id: "p4",
+    code: "PRD-6204",
+    name: "Steel Bearing 6204-ZZ",
+    totalPurchased: 10000,
+    totalSold: 9850,
+    currentStock: 150,
+    velocity: "Fast Moving",
+    reorderRequired: true,
+  },
+  {
+    id: "p5",
+    code: "PRD-3301",
+    name: "Corrugated Boxes (M)",
+    totalPurchased: 15000,
+    totalSold: 6800,
+    currentStock: 8200,
+    velocity: "Average",
+    reorderRequired: false,
+  },
+];
+
 const ERPContext = createContext<ERPContextType | null>(null);
 
 export function ERPProvider({ children }: { children: React.ReactNode }) {
@@ -593,6 +648,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [purchases, setPurchases] = useState<Purchase[]>(defaultPurchases);
   const [inventory, setInventory] = useState<InventoryItem[]>(defaultInventory);
   const [parties, setParties] = useState<PartyAccount[]>(defaultParties);
+  const [performanceList, setPerformanceList] =
+    useState<PerformanceItem[]>(defaultPerformanceItems);
   const [selectedPartyId, setSelectedPartyId] = useState<string>("party-1");
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -603,11 +660,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       const savedPurchases = localStorage.getItem(`${STORAGE_PREFIX}purchases`);
       const savedInventory = localStorage.getItem(`${STORAGE_PREFIX}inventory`);
       const savedParties = localStorage.getItem(`${STORAGE_PREFIX}parties`);
+      const savedPerf = localStorage.getItem(
+        `${STORAGE_PREFIX}performanceItems`,
+      );
 
       if (savedInvoices) setInvoices(JSON.parse(savedInvoices));
       if (savedPurchases) setPurchases(JSON.parse(savedPurchases));
       if (savedInventory) setInventory(JSON.parse(savedInventory));
       if (savedParties) setParties(JSON.parse(savedParties));
+      if (savedPerf) setPerformanceList(JSON.parse(savedPerf));
     } catch (e) {
       console.warn("Failed to load ERP state from localStorage", e);
     }
@@ -631,10 +692,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         JSON.stringify(inventory),
       );
       localStorage.setItem(`${STORAGE_PREFIX}parties`, JSON.stringify(parties));
+      localStorage.setItem(
+        `${STORAGE_PREFIX}performanceItems`,
+        JSON.stringify(performanceList),
+      );
     } catch (e) {
       console.warn("Failed to persist ERP state to localStorage", e);
     }
-  }, [invoices, purchases, inventory, parties, isHydrated]);
+  }, [invoices, purchases, inventory, parties, performanceList, isHydrated]);
 
   const addInvoice = (
     invoiceData: Omit<Invoice, "id" | "createdAt">,
@@ -751,6 +816,33 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const updateParty = (id: string, updates: Partial<PartyAccount>) => {
+    setParties((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+    );
+  };
+
+  const addParty = (
+    partyData: Omit<PartyAccount, "id" | "transactions">,
+  ): PartyAccount => {
+    const newParty: PartyAccount = {
+      ...partyData,
+      id: `party-${Date.now()}`,
+      transactions: [
+        {
+          id: `tx-init-${Date.now()}`,
+          date: partyData.asOfDate || new Date().toISOString().split("T")[0],
+          description: "Opening Balance",
+          debit: partyData.outstandingBalance > 0 ? partyData.outstandingBalance : 0,
+          credit: 0,
+          balance: partyData.outstandingBalance,
+        },
+      ],
+    };
+    setParties((prev) => [...prev, newParty]);
+    return newParty;
+  };
+
   const recordPartyPayment = (
     partyId: string,
     amount: number,
@@ -783,13 +875,34 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setInventory((prev) => prev.filter((item) => !itemIds.includes(item.id)));
   };
 
-  const reorderItem = (code: string) => {
-    setInventory((prev) =>
+  const reorderItem = (code: string, qty: number = 500) => {
+    setPerformanceList((prev) =>
       prev.map((item) => {
-        if (item.sku === code || item.name.includes(code)) {
+        if (
+          item.code === code ||
+          item.name.toLowerCase().includes(code.toLowerCase())
+        ) {
+          const newStock = item.currentStock + qty;
           return {
             ...item,
-            currentStock: item.currentStock + 500,
+            currentStock: newStock,
+            totalPurchased: item.totalPurchased + qty,
+            reorderRequired: newStock < 300,
+          };
+        }
+        return item;
+      }),
+    );
+
+    setInventory((prev) =>
+      prev.map((item) => {
+        if (
+          item.sku === code ||
+          item.name.toLowerCase().includes(code.toLowerCase())
+        ) {
+          return {
+            ...item,
+            currentStock: item.currentStock + qty,
             status: "OPTIMAL",
           };
         }
@@ -803,6 +916,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setPurchases(defaultPurchases);
     setInventory(defaultInventory);
     setParties(defaultParties);
+    setPerformanceList(defaultPerformanceItems);
     setSelectedPartyId("party-1");
     localStorage.clear();
   };
@@ -859,62 +973,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
   }, [invoices, inventory]);
 
-  // Performance Items data
-  const performanceItems: PerformanceItem[] = useMemo(() => {
-    return [
-      {
-        id: "p1",
-        code: "PRD-8902",
-        name: "Industrial Widget A",
-        totalPurchased: 5000,
-        totalSold: 4850,
-        currentStock: 150,
-        velocity: "Fast Moving",
-        reorderRequired: true,
-      },
-      {
-        id: "p2",
-        code: "PRD-4411",
-        name: "Connector Cable 2m",
-        totalPurchased: 2000,
-        totalSold: 800,
-        currentStock: 1200,
-        velocity: "Average",
-        reorderRequired: false,
-      },
-      {
-        id: "p3",
-        code: "PRD-1092",
-        name: "Hydraulic Valve Set",
-        totalPurchased: 300,
-        totalSold: 40,
-        currentStock: 260,
-        velocity: "Slow Moving",
-        reorderRequired: false,
-      },
-      {
-        id: "p4",
-        code: "PRD-6204",
-        name: "Steel Bearing 6204-ZZ",
-        totalPurchased: 10000,
-        totalSold: 9850,
-        currentStock: 150,
-        velocity: "Fast Moving",
-        reorderRequired: true,
-      },
-      {
-        id: "p5",
-        code: "PRD-3301",
-        name: "Corrugated Boxes (M)",
-        totalPurchased: 15000,
-        totalSold: 6800,
-        currentStock: 8200,
-        velocity: "Average",
-        reorderRequired: false,
-      },
-    ];
-  }, []);
-
   return (
     <ERPContext.Provider
       value={{
@@ -931,11 +989,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updatePurchase,
         addInventoryItem,
         updateInventoryItem,
+        updateParty,
+        addParty,
         recordPartyPayment,
         generatePurchaseReturn,
         reorderItem,
         metrics,
-        performanceItems,
+        performanceItems: performanceList,
         resetToDefaults,
       }}
     >

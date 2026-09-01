@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useERP } from "@/lib/store";
 import type { Invoice, PaymentType, SaleItem } from "@/lib/types";
 
@@ -67,6 +67,31 @@ export default function ActiveBillingPage() {
   const [lastSavedInvoice, setLastSavedInvoice] = useState<Invoice | null>(
     null,
   );
+
+  // Modal keyboard listener & body scroll lock
+  useEffect(() => {
+    if (!showPrintModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowPrintModal(false);
+        setItems([]);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        window.print();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [showPrintModal]);
 
   // Quick select item from inventory
   const handleItemSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -524,93 +549,164 @@ export default function ActiveBillingPage() {
 
       {/* Print / Confirmation Modal */}
       {showPrintModal && lastSavedInvoice && (
-        <div className="fixed inset-0 bg-primary/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-sm max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div className="flex justify-between items-start border-b border-outline-variant pb-3">
-              <div className="flex items-center gap-2 text-secondary">
-                <CheckCircle2 className="w-5 h-5" />
-                <h3 className="text-base font-bold text-primary">
-                  Invoice Generated Successfully
-                </h3>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="print-modal-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowPrintModal(false);
+              setItems([]);
+            }
+          }}
+          className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "576px" }}
+            className="bg-surface-container-lowest border border-outline-variant rounded-md w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex flex-row items-start justify-between gap-4 border-b border-outline-variant px-5 py-3.5 bg-surface-container-low shrink-0">
+              <div className="flex items-start gap-2.5 text-secondary min-w-0 flex-1">
+                <CheckCircle2 className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <h3
+                    id="print-modal-title"
+                    className="text-base font-bold text-primary"
+                  >
+                    Invoice Generated Successfully
+                  </h3>
+                  <p className="text-xs text-on-surface-variant font-code">
+                    {lastSavedInvoice.invoiceNo}
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={() => setShowPrintModal(false)}
-                className="text-on-surface-variant hover:text-primary"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-code text-on-surface-variant bg-surface-container border border-outline-variant rounded">
+                  ESC
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPrintModal(false);
+                    setItems([]);
+                  }}
+                  className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-1.5 rounded-sm transition-colors cursor-pointer"
+                  aria-label="Close dialog"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Printable Receipt Preview */}
-            <div className="border border-outline-variant p-4 bg-surface-container-low text-xs space-y-3 font-code">
-              <div className="text-center border-b border-outline-variant pb-2">
-                <div className="font-bold text-sm text-primary">
-                  EASY REPORT WHOLESALE
-                </div>
-                <div className="text-[10px] text-on-surface-variant">
-                  Warehouse Alpha, Sector-4 Industrial Area
-                </div>
-                <div className="text-[10px] text-on-surface-variant">
-                  GSTIN: 07AAAAA0000A1Z5
-                </div>
-              </div>
-              <div className="flex justify-between text-[11px]">
-                <div>
-                  <span className="text-on-surface-variant">Invoice:</span>{" "}
-                  {lastSavedInvoice.invoiceNo}
-                </div>
-                <div>
-                  <span className="text-on-surface-variant">Date:</span>{" "}
-                  {lastSavedInvoice.date}
-                </div>
-              </div>
-              <div>
-                <span className="text-on-surface-variant">Customer:</span>{" "}
-                {lastSavedInvoice.customerName} (
-                {lastSavedInvoice.paymentType.toUpperCase()})
-              </div>
-
-              <div className="border-t border-b border-outline-variant py-1">
-                {lastSavedInvoice.items.map((it: SaleItem) => (
-                  <div
-                    key={it.id || it.itemName}
-                    className="flex justify-between py-0.5"
-                  >
-                    <span>
-                      {it.itemName} x{it.qty}
-                    </span>
-                    <span>₹{it.total.toFixed(2)}</span>
+            <div className="p-5 overflow-y-auto flex-1 text-xs">
+              <div className="border border-outline-variant rounded-sm p-4 bg-surface-container-low text-xs space-y-3 font-code shadow-xs">
+                <div className="text-center border-b border-outline-variant pb-2.5">
+                  <div className="font-bold text-sm text-primary tracking-wide">
+                    EASY REPORT WHOLESALE
                   </div>
-                ))}
-              </div>
+                  <div className="text-[10px] text-on-surface-variant">
+                    Warehouse Alpha, Sector-4 Industrial Area
+                  </div>
+                  <div className="text-[10px] text-on-surface-variant">
+                    GSTIN: 07AAAAA0000A1Z5
+                  </div>
+                </div>
 
-              <div className="space-y-0.5 text-right font-medium">
-                <div>Subtotal: ₹{lastSavedInvoice.subtotal.toFixed(2)}</div>
-                <div>Tax (10%): ₹{lastSavedInvoice.tax.toFixed(2)}</div>
-                <div className="font-bold text-sm text-primary pt-1 border-t border-outline-variant">
-                  Grand Total: ₹{lastSavedInvoice.grandTotal.toFixed(2)}
+                <div className="flex justify-between text-[11px] py-1 border-b border-outline-variant/60">
+                  <div>
+                    <span className="text-on-surface-variant">Invoice:</span>{" "}
+                    <span className="font-bold text-primary">{lastSavedInvoice.invoiceNo}</span>
+                  </div>
+                  <div>
+                    <span className="text-on-surface-variant">Date:</span>{" "}
+                    <span className="font-medium">{lastSavedInvoice.date}</span>
+                  </div>
+                </div>
+
+                <div className="text-[11px]">
+                  <span className="text-on-surface-variant">Customer:</span>{" "}
+                  <span className="font-bold text-on-surface">{lastSavedInvoice.customerName}</span>{" "}
+                  <span className="text-[10px] px-1.5 py-0.5 bg-surface-container border border-outline-variant rounded uppercase font-semibold">
+                    {lastSavedInvoice.paymentType}
+                  </span>
+                </div>
+
+                <div className="border-t border-b border-outline-variant py-2 space-y-1">
+                  {lastSavedInvoice.items.map((it: SaleItem) => (
+                    <div
+                      key={it.id || it.itemName}
+                      className="flex justify-between items-center py-0.5 text-[11px]"
+                    >
+                      <span className="truncate pr-2">
+                        {it.itemName}{" "}
+                        <span className="text-on-surface-variant">
+                          x{it.qty}
+                        </span>
+                      </span>
+                      <span className="font-semibold shrink-0">
+                        ₹{it.total.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-1 text-right font-medium text-xs pt-1">
+                  <div className="flex justify-between text-on-surface-variant">
+                    <span>Subtotal:</span>
+                    <span>₹{lastSavedInvoice.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-on-surface-variant">
+                    <span>Tax (10% GST):</span>
+                    <span>₹{lastSavedInvoice.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-sm text-primary pt-2 border-t border-outline-variant">
+                    <span>Grand Total:</span>
+                    <span>₹{lastSavedInvoice.grandTotal.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => {
-                  setShowPrintModal(false);
-                  setItems([]);
-                }}
-                className="px-4 py-2 border border-outline-variant text-xs font-semibold rounded-sm hover:bg-surface-container-high"
-              >
-                New Bill
-              </button>
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-sm hover:opacity-90 flex items-center gap-1.5"
-              >
-                <Printer className="w-3.5 h-3.5" /> Print Receipt
-              </button>
+            {/* Sticky Modal Footer */}
+            <div className="border-t border-outline-variant bg-surface-container-low px-5 py-3 flex flex-wrap justify-between items-center gap-3 shrink-0">
+              <div className="text-[11px] text-on-surface-variant hidden sm:flex items-center gap-2">
+                <span>
+                  Press{" "}
+                  <kbd className="px-1 py-0.5 font-code bg-surface-container border border-outline-variant rounded text-[10px]">
+                    Ctrl
+                  </kbd>
+                  +
+                  <kbd className="px-1 py-0.5 font-code bg-surface-container border border-outline-variant rounded text-[10px]">
+                    P
+                  </kbd>{" "}
+                  to print receipt
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPrintModal(false);
+                    setItems([]);
+                  }}
+                  className="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-semibold rounded-sm hover:bg-surface-container-high transition-colors cursor-pointer"
+                >
+                  New Bill (ESC)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.print();
+                  }}
+                  className="px-5 py-2 bg-primary text-on-primary font-semibold text-xs rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5" /> Print Receipt
+                </button>
+              </div>
             </div>
           </div>
         </div>

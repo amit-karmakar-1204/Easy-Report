@@ -81,14 +81,6 @@
   --color-outline-variant: #e5e7eb;
   --color-on-surface: #191c1f;
   --color-on-surface-variant: #45464c;
-
-  --spacing-container-margin: 24px;
-  --spacing-gutter: 16px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
 }
 
 body {

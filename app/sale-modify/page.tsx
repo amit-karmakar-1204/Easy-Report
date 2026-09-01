@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
 import type {
   Invoice,
@@ -52,6 +52,34 @@ export default function SaleModifyPage() {
   const [newItemDisc, setNewItemDisc] = useState("0");
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Modal keyboard listener & body scroll lock
+  useEffect(() => {
+    if (!editingInvoice) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setEditingInvoice(null);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        const form = document.getElementById(
+          "invoice-edit-form",
+        ) as HTMLFormElement | null;
+        if (form) {
+          form.requestSubmit();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [editingInvoice]);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
@@ -514,319 +542,347 @@ export default function SaleModifyPage() {
 
       {/* Advanced Full-Featured Edit Invoice Modal */}
       {editingInvoice && (
-        <div className="fixed inset-0 bg-primary/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-sm max-w-2xl w-full p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-start border-b border-outline-variant pb-3 shrink-0">
-              <div>
-                <h3 className="text-lg font-bold text-primary">
-                  Modify Invoice
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sale-edit-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingInvoice(null);
+            }
+          }}
+          className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "672px" }}
+            className="bg-surface-container-lowest border border-outline-variant rounded-md w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex flex-row items-start justify-between gap-4 border-b border-outline-variant px-5 py-3.5 bg-surface-container-low shrink-0">
+              <div className="min-w-0 flex-1">
+                <h3
+                  id="sale-edit-title"
+                  className="text-base font-bold text-primary flex items-center gap-2"
+                >
+                  <Receipt className="w-4 h-4 text-primary" /> Modify Invoice
                 </h3>
                 <p className="text-xs text-on-surface-variant font-code mt-0.5">
-                  Editing record: {editingInvoice.invoiceNo}
+                  Invoice No: <span className="font-bold text-primary">{editingInvoice.invoiceNo}</span>
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setEditingInvoice(null)}
-                className="text-on-surface-variant hover:text-primary cursor-pointer p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-code text-on-surface-variant bg-surface-container border border-outline-variant rounded">
+                  ESC
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEditingInvoice(null)}
+                  className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-1.5 rounded-sm transition-colors cursor-pointer"
+                  aria-label="Close dialog"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
+            {/* Modal Body Form */}
             <form
+              id="invoice-edit-form"
               onSubmit={handleSaveEdit}
-              className="space-y-4 text-xs flex-1 overflow-y-auto pr-1"
+              className="flex flex-col flex-1 min-h-0"
             >
-              {/* Header Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-surface-container-low p-3 rounded-sm">
-                <div>
-                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                    Customer Name
-                  </label>
-                  <input
-                    type="text"
-                    list="modalPartyList"
-                    value={editCustomer}
-                    onChange={(e) => setEditCustomer(e.target.value)}
-                    required
-                    className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface rounded-sm focus:border-primary outline-none font-medium"
-                  />
-                  <datalist id="modalPartyList">
-                    <option value="Cash Customer" />
-                    {parties.map((p) => (
-                      <option key={p.id} value={p.name} />
-                    ))}
-                  </datalist>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                    Invoice Date
-                  </label>
-                  <input
-                    type="date"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
-                    required
-                    className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface rounded-sm focus:border-primary outline-none font-code"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                    Payment Status
-                  </label>
-                  <select
-                    value={editStatus}
-                    onChange={(e) =>
-                      setEditStatus(e.target.value as InvoiceStatus)
-                    }
-                    className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface rounded-sm focus:border-primary outline-none font-bold"
-                  >
-                    <option value="Paid">Paid</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Overdue">Overdue</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Line Items Management Table */}
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] tracking-wider">
-                    Line Items in Invoice ({editItems.length})
-                  </label>
-                  <span className="text-[11px] text-on-surface-variant font-code">
-                    Editable Qty & Rates
-                  </span>
-                </div>
-
-                <div className="border border-outline-variant rounded-sm overflow-x-auto max-h-48 overflow-y-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead className="bg-surface-container-low sticky top-0 border-b border-outline-variant text-[10px]">
-                      <tr>
-                        <th className="py-2 px-3 font-bold text-on-surface-variant">
-                          Item Description
-                        </th>
-                        <th className="py-2 px-2 font-bold text-on-surface-variant w-16 text-right">
-                          Qty
-                        </th>
-                        <th className="py-2 px-2 font-bold text-on-surface-variant w-20 text-right">
-                          Rate (₹)
-                        </th>
-                        <th className="py-2 px-2 font-bold text-on-surface-variant w-16 text-right">
-                          Disc%
-                        </th>
-                        <th className="py-2 px-3 font-bold text-on-surface-variant w-20 text-right">
-                          Total
-                        </th>
-                        <th className="py-2 px-2 text-center w-10">Act</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant">
-                      {editItems.map((item, idx) => (
-                        <tr
-                          key={item.id || idx}
-                          className="hover:bg-surface-container-low"
-                        >
-                          <td className="py-1.5 px-3">
-                            <input
-                              type="text"
-                              value={item.itemName}
-                              onChange={(e) =>
-                                handleUpdateItem(
-                                  idx,
-                                  "itemName",
-                                  e.target.value,
-                                )
-                              }
-                              className="w-full bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary outline-none font-medium py-0.5"
-                            />
-                          </td>
-                          <td className="py-1.5 px-2 text-right">
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.qty}
-                              onChange={(e) =>
-                                handleUpdateItem(idx, "qty", e.target.value)
-                              }
-                              className="w-full text-right bg-surface border border-outline-variant rounded-xs px-1 py-0.5 font-code"
-                            />
-                          </td>
-                          <td className="py-1.5 px-2 text-right">
-                            <input
-                              type="number"
-                              step="0.01"
-                              value={item.rate}
-                              onChange={(e) =>
-                                handleUpdateItem(idx, "rate", e.target.value)
-                              }
-                              className="w-full text-right bg-surface border border-outline-variant rounded-xs px-1 py-0.5 font-code"
-                            />
-                          </td>
-                          <td className="py-1.5 px-2 text-right">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={item.discount}
-                              onChange={(e) =>
-                                handleUpdateItem(
-                                  idx,
-                                  "discount",
-                                  e.target.value,
-                                )
-                              }
-                              className="w-full text-right bg-surface border border-outline-variant rounded-xs px-1 py-0.5 font-code"
-                            />
-                          </td>
-                          <td className="py-1.5 px-3 text-right font-code font-bold text-primary">
-                            ₹{item.total.toFixed(2)}
-                          </td>
-                          <td className="py-1.5 px-2 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItemFromEdit(idx)}
-                              className="text-on-surface-variant hover:text-error transition-colors p-1"
-                              title="Delete item row"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Add New Line Item Row */}
-              <div className="bg-surface-container-low p-3 rounded-sm border border-outline-variant">
-                <span className="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
-                  + Add Line Item
-                </span>
-                <div className="grid grid-cols-12 gap-2 items-end">
-                  <div className="col-span-5">
+              <div className="space-y-4 p-5 overflow-y-auto flex-1 text-xs">
+                {/* Header Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-surface-container-low p-3.5 rounded-sm border border-outline-variant">
+                  <div>
+                    <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                      Customer Name <span className="text-error">*</span>
+                    </label>
                     <input
                       type="text"
-                      list="inventoryModalItems"
-                      placeholder="Item name / search"
-                      value={newItemName}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setNewItemName(val);
-                        const match = inventory.find(
-                          (inv) => inv.name.toLowerCase() === val.toLowerCase(),
-                        );
-                        if (match) setNewItemRate(match.salePrice.toString());
-                      }}
-                      className="w-full px-2 py-1 bg-surface border border-outline-variant rounded-xs text-xs"
+                      list="modalPartyList"
+                      value={editCustomer}
+                      onChange={(e) => setEditCustomer(e.target.value)}
+                      required
+                      className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-medium text-xs text-on-surface"
                     />
-                    <datalist id="inventoryModalItems">
-                      {inventory.map((inv) => (
-                        <option key={inv.id} value={inv.name} />
+                    <datalist id="modalPartyList">
+                      <option value="Cash Customer" />
+                      {parties.map((p) => (
+                        <option key={p.id} value={p.name} />
                       ))}
                     </datalist>
                   </div>
-                  <div className="col-span-2">
+
+                  <div>
+                    <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                      Invoice Date <span className="text-error">*</span>
+                    </label>
                     <input
-                      type="number"
-                      min="1"
-                      placeholder="Qty"
-                      value={newItemQty}
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      required
+                      className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-code text-xs text-on-surface"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                      Payment Status
+                    </label>
+                    <select
+                      value={editStatus}
                       onChange={(e) =>
-                        setNewItemQty(parseInt(e.target.value, 10) || 1)
+                        setEditStatus(e.target.value as InvoiceStatus)
                       }
-                      className="w-full px-2 py-1 bg-surface border border-outline-variant rounded-xs text-xs text-right font-code"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="Rate ₹"
-                      value={newItemRate}
-                      onChange={(e) => setNewItemRate(e.target.value)}
-                      className="w-full px-2 py-1 bg-surface border border-outline-variant rounded-xs text-xs text-right font-code"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <input
-                      type="number"
-                      step="0.1"
-                      placeholder="Disc%"
-                      value={newItemDisc}
-                      onChange={(e) => setNewItemDisc(e.target.value)}
-                      className="w-full px-2 py-1 bg-surface border border-outline-variant rounded-xs text-xs text-right font-code"
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <button
-                      type="button"
-                      onClick={handleAddItemToEdit}
-                      className="w-full py-1 bg-primary text-on-primary rounded-xs text-xs font-bold hover:opacity-90 flex items-center justify-center h-[26px]"
+                      className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-bold text-xs text-primary"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
+                      <option value="Paid">Paid</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Overdue">Overdue</option>
+                    </select>
                   </div>
                 </div>
-              </div>
 
-              {/* Totals Breakdown */}
-              <div className="bg-surface-container-low p-3 rounded-sm flex justify-between items-center text-xs">
-                <div className="text-on-surface-variant">
-                  Items:{" "}
-                  <span className="font-bold text-on-surface">
-                    {editItems.length}
+                {/* Line Items Management Table */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block font-bold text-on-surface-variant uppercase text-[10px] tracking-wider">
+                      Line Items in Invoice ({editItems.length})
+                    </label>
+                    <span className="text-[11px] text-on-surface-variant font-code">
+                      Editable Qty & Rates
+                    </span>
+                  </div>
+
+                  <div className="border border-outline-variant rounded-sm overflow-x-auto max-h-48 overflow-y-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead className="bg-surface-container-low sticky top-0 border-b border-outline-variant text-[10px]">
+                        <tr>
+                          <th className="py-2 px-3 font-bold text-on-surface-variant">
+                            Item Description
+                          </th>
+                          <th className="py-2 px-2 font-bold text-on-surface-variant w-16 text-right">
+                            Qty
+                          </th>
+                          <th className="py-2 px-2 font-bold text-on-surface-variant w-20 text-right">
+                            Rate (₹)
+                          </th>
+                          <th className="py-2 px-2 font-bold text-on-surface-variant w-16 text-right">
+                            Disc%
+                          </th>
+                          <th className="py-2 px-3 font-bold text-on-surface-variant w-20 text-right">
+                            Total
+                          </th>
+                          <th className="py-2 px-2 text-center w-10">Act</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant">
+                        {editItems.map((item, idx) => (
+                          <tr
+                            key={item.id || idx}
+                            className="hover:bg-surface-container-low"
+                          >
+                            <td className="py-1.5 px-3">
+                              <input
+                                type="text"
+                                value={item.itemName}
+                                onChange={(e) =>
+                                  handleUpdateItem(
+                                    idx,
+                                    "itemName",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary outline-none font-medium py-0.5 text-xs"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2 text-right">
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.qty}
+                                onChange={(e) =>
+                                  handleUpdateItem(idx, "qty", e.target.value)
+                                }
+                                className="w-full text-right bg-surface-container-lowest border border-outline-variant rounded-xs px-1 py-0.5 font-code text-xs font-bold"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2 text-right">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={item.rate}
+                                onChange={(e) =>
+                                  handleUpdateItem(idx, "rate", e.target.value)
+                                }
+                                className="w-full text-right bg-surface-container-lowest border border-outline-variant rounded-xs px-1 py-0.5 font-code text-xs"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2 text-right">
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={item.discount}
+                                onChange={(e) =>
+                                  handleUpdateItem(
+                                    idx,
+                                    "discount",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full text-right bg-surface-container-lowest border border-outline-variant rounded-xs px-1 py-0.5 font-code text-xs"
+                              />
+                            </td>
+                            <td className="py-1.5 px-3 text-right font-code font-bold text-primary">
+                              ₹{item.total.toFixed(2)}
+                            </td>
+                            <td className="py-1.5 px-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItemFromEdit(idx)}
+                                className="text-on-surface-variant hover:text-error transition-colors p-1 cursor-pointer"
+                                title="Delete item row"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Add New Line Item Row */}
+                <div className="bg-surface-container-low p-3 rounded-sm border border-outline-variant">
+                  <span className="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
+                    + Add Line Item
                   </span>
+                  <div className="grid grid-cols-12 gap-2 items-end">
+                    <div className="col-span-5">
+                      <input
+                        type="text"
+                        list="inventoryModalItems"
+                        placeholder="Item name / search"
+                        value={newItemName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewItemName(val);
+                          const match = inventory.find(
+                            (inv) => inv.name.toLowerCase() === val.toLowerCase(),
+                          );
+                          if (match) setNewItemRate(match.salePrice.toString());
+                        }}
+                        className="w-full px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded-xs text-xs"
+                      />
+                      <datalist id="inventoryModalItems">
+                        {inventory.map((inv) => (
+                          <option key={inv.id} value={inv.name} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="Qty"
+                        value={newItemQty}
+                        onChange={(e) =>
+                          setNewItemQty(parseInt(e.target.value, 10) || 1)
+                        }
+                        className="w-full px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded-xs text-xs text-right font-code"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Rate ₹"
+                        value={newItemRate}
+                        onChange={(e) => setNewItemRate(e.target.value)}
+                        className="w-full px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded-xs text-xs text-right font-code"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="Disc%"
+                        value={newItemDisc}
+                        onChange={(e) => setNewItemDisc(e.target.value)}
+                        className="w-full px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded-xs text-xs text-right font-code"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <button
+                        type="button"
+                        onClick={handleAddItemToEdit}
+                        className="w-full py-1 bg-primary text-on-primary rounded-xs text-xs font-bold hover:opacity-90 flex items-center justify-center h-[26px] cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-4 font-code text-right">
-                  <div>
-                    <span className="text-[10px] text-on-surface-variant block">
-                      Subtotal:
-                    </span>
-                    <span className="font-semibold">
-                      ₹{editSubtotal.toFixed(2)}
+
+                {/* Totals Breakdown */}
+                <div className="bg-surface-container-low p-3.5 rounded-sm border border-outline-variant flex justify-between items-center text-xs">
+                  <div className="text-on-surface-variant">
+                    Items:{" "}
+                    <span className="font-bold text-on-surface">
+                      {editItems.length}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-on-surface-variant block">
-                      Tax (10%):
-                    </span>
-                    <span className="font-semibold">₹{editTax.toFixed(2)}</span>
-                  </div>
-                  <div className="border-l border-outline-variant pl-3">
-                    <span className="text-[10px] text-primary font-bold block">
-                      Grand Total:
-                    </span>
-                    <span className="font-bold text-sm text-primary">
-                      ₹{editGrandTotal.toFixed(2)}
-                    </span>
+                  <div className="flex gap-4 font-code text-right">
+                    <div>
+                      <span className="text-[10px] text-on-surface-variant block">
+                        Subtotal:
+                      </span>
+                      <span className="font-semibold">
+                        ₹{editSubtotal.toFixed(2)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-on-surface-variant block">
+                        Tax (10%):
+                      </span>
+                      <span className="font-semibold">₹{editTax.toFixed(2)}</span>
+                    </div>
+                    <div className="border-l border-outline-variant pl-3">
+                      <span className="text-[10px] text-primary font-bold block">
+                        Grand Total:
+                      </span>
+                      <span className="font-bold text-sm text-primary">
+                        ₹{editGrandTotal.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-3 border-t border-outline-variant shrink-0">
+              {/* Sticky Modal Footer */}
+              <div className="border-t border-outline-variant bg-surface-container-low px-5 py-3 flex flex-wrap justify-between items-center gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => handleDelete(editingInvoice.id)}
-                  className="px-3.5 py-2 bg-error-container text-on-error-container font-semibold rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2 bg-error-container text-on-error-container font-semibold rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer text-xs"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Delete Invoice
                 </button>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 ml-auto">
                   <button
                     type="button"
                     onClick={() => setEditingInvoice(null)}
-                    className="px-4 py-2 border border-outline-variant text-xs font-semibold rounded-sm hover:bg-surface-container-high cursor-pointer"
+                    className="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-semibold rounded-sm hover:bg-surface-container-high transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-primary text-on-primary font-semibold rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer"
+                    className="px-5 py-2 bg-primary text-on-primary font-semibold text-xs rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Save className="w-3.5 h-3.5" /> Save Changes
                   </button>

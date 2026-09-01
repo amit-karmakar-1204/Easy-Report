@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
 
 export default function ExpiryActionBoardPage() {
-  const { generatePurchaseReturn } = useERP();
+  const { generatePurchaseReturn, parties, purchases } = useERP();
 
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [selectedIds, setSelectedIds] = useState<string[]>(["exp-1", "exp-2"]);
@@ -25,6 +25,50 @@ export default function ExpiryActionBoardPage() {
   const [returnSupplier, setReturnSupplier] = useState("Global Tech Supplies");
   const [returnReason, setReturnReason] = useState("Past Shelf-Life Expiry");
   const [returnSuccessMsg, setReturnSuccessMsg] = useState<string | null>(null);
+
+  // Supplier options from ERP
+  const supplierOptions = useMemo(() => {
+    const fromParties = parties?.map((p) => p.name) || [];
+    const fromPurchases = purchases?.map((p) => p.supplierName) || [];
+    const defaults = [
+      "Global Tech Supplies",
+      "Nexus Industries",
+      "Apex Parts Co.",
+      "Prime Supplies",
+      "Zenith Corp",
+    ];
+    return Array.from(
+      new Set([...fromParties, ...fromPurchases, ...defaults]),
+    ).filter(Boolean);
+  }, [parties, purchases]);
+
+  // Modal keyboard listener & body scroll lock
+  useEffect(() => {
+    if (!showReturnModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowReturnModal(false);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        const form = document.getElementById(
+          "return-modal-form",
+        ) as HTMLFormElement | null;
+        if (form) {
+          form.requestSubmit();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [showReturnModal]);
 
   // Expired items dataset
   const [expiredItems, setExpiredItems] = useState([
@@ -395,114 +439,170 @@ export default function ExpiryActionBoardPage() {
 
       {/* Generate Purchase Return Confirmation Modal */}
       {showReturnModal && (
-        <div className="fixed inset-0 bg-primary/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-sm max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-start border-b border-outline-variant pb-3">
-              <div>
-                <h3 className="text-base font-bold text-primary flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4" /> Generate Purchase Return
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="return-modal-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowReturnModal(false);
+            }
+          }}
+          className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "576px" }}
+            className="bg-surface-container-lowest border border-outline-variant rounded-md w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex flex-row items-start justify-between gap-4 border-b border-outline-variant px-5 py-3.5 bg-surface-container-low shrink-0">
+              <div className="min-w-0 flex-1">
+                <h3
+                  id="return-modal-title"
+                  className="text-base font-bold text-primary flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4 text-error" /> Generate Purchase Return
                 </h3>
                 <p className="text-xs text-on-surface-variant mt-0.5">
-                  Quarantine {selectedItemsList.length} items and issue supplier
-                  debit voucher
+                  Quarantine {selectedItemsList.length} items and issue supplier debit voucher
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowReturnModal(false)}
-                className="text-on-surface-variant hover:text-primary cursor-pointer p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleConfirmReturn} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                  Supplier / Vendor for Return
-                </label>
-                <input
-                  type="text"
-                  list="vendorReturnList"
-                  value={returnSupplier}
-                  onChange={(e) => setReturnSupplier(e.target.value)}
-                  required
-                  className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface rounded-sm focus:border-primary outline-none"
-                />
-                <datalist id="vendorReturnList">
-                  <option value="Global Tech Supplies" />
-                  <option value="Nexus Industries" />
-                  <option value="Prime Supplies" />
-                </datalist>
-              </div>
-
-              <div>
-                <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                  Reason for Return
-                </label>
-                <select
-                  value={returnReason}
-                  onChange={(e) => setReturnReason(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface rounded-sm focus:border-primary outline-none font-medium"
-                >
-                  <option value="Past Shelf-Life Expiry">
-                    Past Shelf-Life Expiry
-                  </option>
-                  <option value="Damaged Seal / Packaging">
-                    Damaged Seal / Packaging
-                  </option>
-                  <option value="Manufacturer Quality Recall">
-                    Manufacturer Quality Recall
-                  </option>
-                  <option value="Short Expiry on Delivery">
-                    Short Expiry on Delivery
-                  </option>
-                </select>
-              </div>
-
-              {/* Items summary */}
-              <div>
-                <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                  Quarantined Batch Items
-                </label>
-                <div className="border border-outline-variant rounded-sm p-2 bg-surface-container-low max-h-32 overflow-y-auto space-y-1 font-code">
-                  {selectedItemsList.map((it) => (
-                    <div key={it.id} className="flex justify-between">
-                      <span>
-                        {it.name} ({it.stockQty} pcs)
-                      </span>
-                      <span className="font-bold text-error">
-                        ₹{it.estValue.toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-surface-container-low p-3 rounded-sm flex justify-between items-center text-xs font-code">
-                <span className="text-on-surface-variant">
-                  Debit Note Amount:
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-code text-on-surface-variant bg-surface-container border border-outline-variant rounded">
+                  ESC
                 </span>
-                <span className="font-bold text-base text-primary">
-                  {formatINR(selectedTotalVal)}
-                </span>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant">
                 <button
                   type="button"
                   onClick={() => setShowReturnModal(false)}
-                  className="px-4 py-2 border border-outline-variant text-xs font-semibold rounded-sm hover:bg-surface-container-high cursor-pointer"
+                  className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-1.5 rounded-sm transition-colors cursor-pointer"
+                  aria-label="Close dialog"
                 >
-                  Cancel
+                  <X className="w-4 h-4" />
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-primary text-on-primary font-semibold rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FileCheck className="w-3.5 h-3.5" /> Confirm & Issue Debit
-                  Note
-                </button>
+              </div>
+            </div>
+
+            {/* Modal Body Form */}
+            <form
+              id="return-modal-form"
+              onSubmit={handleConfirmReturn}
+              className="flex flex-col flex-1 min-h-0"
+            >
+              <div className="space-y-4 p-5 overflow-y-auto flex-1 text-xs">
+                <div>
+                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                    Supplier / Vendor for Return <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    list="vendorReturnList"
+                    value={returnSupplier}
+                    onChange={(e) => setReturnSupplier(e.target.value)}
+                    required
+                    placeholder="Select or enter supplier..."
+                    className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-medium text-xs text-on-surface"
+                  />
+                  <datalist id="vendorReturnList">
+                    {supplierOptions.map((s) => (
+                      <option key={s} value={s} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                    Reason for Return <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-medium text-xs text-on-surface"
+                  >
+                    <option value="Past Shelf-Life Expiry">
+                      Past Shelf-Life Expiry
+                    </option>
+                    <option value="Damaged Seal / Packaging">
+                      Damaged Seal / Packaging
+                    </option>
+                    <option value="Manufacturer Quality Recall">
+                      Manufacturer Quality Recall
+                    </option>
+                    <option value="Short Expiry on Delivery">
+                      Short Expiry on Delivery
+                    </option>
+                  </select>
+                </div>
+
+                {/* Quarantined Items list */}
+                <div>
+                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                    Quarantined Batch Items ({selectedItemsList.length})
+                  </label>
+                  <div className="border border-outline-variant rounded-sm p-2.5 bg-surface-container-low max-h-36 overflow-y-auto space-y-1.5 font-code">
+                    {selectedItemsList.map((it) => (
+                      <div
+                        key={it.id}
+                        className="flex justify-between items-center text-[11px] pb-1 border-b border-outline-variant/60 last:border-none last:pb-0"
+                      >
+                        <div className="truncate pr-2">
+                          <span className="font-semibold text-primary block truncate">
+                            {it.name}
+                          </span>
+                          <span className="text-[10px] text-on-surface-variant">
+                            Batch: {it.batchCode} • {it.stockQty} pcs
+                          </span>
+                        </div>
+                        <span className="font-bold text-error shrink-0">
+                          {formatINR(it.estValue)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Financial Summary */}
+                <div className="bg-surface-container-low p-3.5 rounded-sm border border-outline-variant flex justify-between items-center text-xs">
+                  <span className="text-on-surface-variant font-medium">
+                    Total Debit Note Value:
+                  </span>
+                  <span className="font-bold text-base text-primary font-code">
+                    {formatINR(selectedTotalVal)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sticky Modal Footer */}
+              <div className="border-t border-outline-variant bg-surface-container-low px-5 py-3 flex flex-wrap justify-between items-center gap-3 shrink-0">
+                <div className="text-[11px] text-on-surface-variant hidden sm:flex items-center gap-2">
+                  <span>
+                    Press{" "}
+                    <kbd className="px-1 py-0.5 font-code bg-surface-container border border-outline-variant rounded text-[10px]">
+                      Ctrl
+                    </kbd>
+                    +
+                    <kbd className="px-1 py-0.5 font-code bg-surface-container border border-outline-variant rounded text-[10px]">
+                      Enter
+                    </kbd>{" "}
+                    to confirm
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowReturnModal(false)}
+                    className="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-semibold rounded-sm hover:bg-surface-container-high transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-primary text-on-primary font-semibold text-xs rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <FileCheck className="w-3.5 h-3.5" /> Confirm & Issue Debit Note
+                  </button>
+                </div>
               </div>
             </form>
           </div>

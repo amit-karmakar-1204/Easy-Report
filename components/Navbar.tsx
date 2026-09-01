@@ -4,7 +4,7 @@ import { Bell, Menu, RefreshCw, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useERP } from "@/lib/store";
 
 interface NavbarProps {
@@ -21,6 +21,46 @@ export function Navbar({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { metrics, resetToDefaults } = useERP();
   const router = useRouter();
+
+  const notifRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click or Escape key
+  useEffect(() => {
+    if (!showNotifications && !showUserMenu) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowNotifications(false);
+        setShowUserMenu(false);
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        showNotifications &&
+        notifRef.current &&
+        !notifRef.current.contains(e.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
+      if (
+        showUserMenu &&
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showNotifications, showUserMenu]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +138,7 @@ export function Navbar({
         </button>
 
         {/* Notifications */}
-        <div className="relative">
+        <div ref={notifRef} className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
             aria-label="Notifications"
@@ -153,7 +193,7 @@ export function Navbar({
         </div>
 
         {/* User Account */}
-        <div className="relative">
+        <div ref={userMenuRef} className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
             aria-label="User Account"

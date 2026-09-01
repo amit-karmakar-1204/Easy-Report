@@ -78,7 +78,13 @@ export interface PartyAccount {
   id: string;
   name: string;
   distributorId: string;
+  partyType?: "customer" | "distributor" | "vendor";
   phone?: string;
+  email?: string;
+  address?: string;
+  gstin?: string;
+  creditLimit?: number;
+  paymentTerms?: string;
   outstandingBalance: number;
   asOfDate: string;
   transactions: LedgerTransaction[];
