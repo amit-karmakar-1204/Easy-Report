@@ -568,7 +568,10 @@ export default function SaleModifyPage() {
                   <Receipt className="w-4 h-4 text-primary" /> Modify Invoice
                 </h3>
                 <p className="text-xs text-on-surface-variant font-code mt-0.5">
-                  Invoice No: <span className="font-bold text-primary">{editingInvoice.invoiceNo}</span>
+                  Invoice No:{" "}
+                  <span className="font-bold text-primary">
+                    {editingInvoice.invoiceNo}
+                  </span>
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -772,7 +775,8 @@ export default function SaleModifyPage() {
                           const val = e.target.value;
                           setNewItemName(val);
                           const match = inventory.find(
-                            (inv) => inv.name.toLowerCase() === val.toLowerCase(),
+                            (inv) =>
+                              inv.name.toLowerCase() === val.toLowerCase(),
                           );
                           if (match) setNewItemRate(match.salePrice.toString());
                         }}
@@ -849,7 +853,9 @@ export default function SaleModifyPage() {
                       <span className="text-[10px] text-on-surface-variant block">
                         Tax (10%):
                       </span>
-                      <span className="font-semibold">₹{editTax.toFixed(2)}</span>
+                      <span className="font-semibold">
+                        ₹{editTax.toFixed(2)}
+                      </span>
                     </div>
                     <div className="border-l border-outline-variant pl-3">
                       <span className="text-[10px] text-primary font-bold block">

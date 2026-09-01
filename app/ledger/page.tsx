@@ -243,7 +243,9 @@ export default function LedgerAccountBookPage() {
     setNewOpeningBalance("0");
   };
 
-  const handlePaymentModeChange = (mode: "NEFT" | "UPI" | "CHEQUE" | "CASH") => {
+  const handlePaymentModeChange = (
+    mode: "NEFT" | "UPI" | "CHEQUE" | "CASH",
+  ) => {
     setPaymentMode(mode);
     if (mode === "NEFT") setPaymentRef("NEFT-");
     else if (mode === "UPI") setPaymentRef("UPI-");
@@ -263,12 +265,7 @@ export default function LedgerAccountBookPage() {
       paymentNotes ? ` [${paymentNotes}]` : ""
     }`;
 
-    recordPartyPayment(
-      currentParty.id,
-      amountNum,
-      description,
-      paymentDate,
-    );
+    recordPartyPayment(currentParty.id, amountNum, description, paymentDate);
 
     setToastMessage(
       `Payment receipt of ${formatINR(amountNum)} recorded for ${currentParty.name}`,
@@ -307,7 +304,8 @@ export default function LedgerAccountBookPage() {
               Ledger Account Book (Party Khata)
             </h1>
             <p className="text-xs text-on-surface-variant">
-              Customer, Distributor & Vendor ledger accounts, credit monitoring, and settlement vouchers
+              Customer, Distributor & Vendor ledger accounts, credit monitoring,
+              and settlement vouchers
             </p>
           </div>
         </div>
@@ -377,12 +375,14 @@ export default function LedgerAccountBookPage() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-on-surface-variant">
                 {currentParty.phone && (
                   <span className="flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-on-surface-variant" /> {currentParty.phone}
+                    <Phone className="w-3 h-3 text-on-surface-variant" />{" "}
+                    {currentParty.phone}
                   </span>
                 )}
                 {currentParty.email && (
                   <span className="flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-on-surface-variant" /> {currentParty.email}
+                    <Mail className="w-3 h-3 text-on-surface-variant" />{" "}
+                    {currentParty.email}
                   </span>
                 )}
                 {currentParty.gstin && (
@@ -416,12 +416,17 @@ export default function LedgerAccountBookPage() {
                   />
                 </div>
                 <div className="flex justify-between text-[10px] text-on-surface-variant mt-1.5">
-                  <span className="font-semibold">{utilizationPct}% Utilized</span>
+                  <span className="font-semibold">
+                    {utilizationPct}% Utilized
+                  </span>
                   <span>
                     Available:{" "}
                     <strong className="text-primary font-code">
                       {formatINR(
-                        Math.max(0, creditLimit - currentParty.outstandingBalance),
+                        Math.max(
+                          0,
+                          creditLimit - currentParty.outstandingBalance,
+                        ),
                       )}
                     </strong>
                   </span>
@@ -454,7 +459,8 @@ export default function LedgerAccountBookPage() {
               onClick={handleOpenEditParty}
               className="bg-surface-container-highest text-on-surface text-xs font-semibold px-4 py-2 rounded-sm border border-outline-variant hover:bg-outline-variant transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <FileEdit className="w-3.5 h-3.5 text-primary" /> Edit Party Profile
+              <FileEdit className="w-3.5 h-3.5 text-primary" /> Edit Party
+              Profile
             </button>
             <button
               onClick={() => setShowAddPartyModal(true)}
@@ -480,7 +486,8 @@ export default function LedgerAccountBookPage() {
               Statement & Transaction Ledger
             </h3>
             <p className="text-[11px] text-on-surface-variant">
-              Chronological ledger of debits (invoices), credits (receipts), and net running balances
+              Chronological ledger of debits (invoices), credits (receipts), and
+              net running balances
             </p>
           </div>
           <div className="flex flex-wrap gap-2 items-center text-xs">
@@ -614,7 +621,8 @@ export default function LedgerAccountBookPage() {
                     id="edit-party-title"
                     className="text-base font-bold text-primary flex items-center gap-2"
                   >
-                    <FileEdit className="w-4 h-4 text-primary" /> Edit Party Profile & Khata Master
+                    <FileEdit className="w-4 h-4 text-primary" /> Edit Party
+                    Profile & Khata Master
                   </h3>
                   <span className="font-code text-xs px-2 py-0.5 bg-surface-container border border-outline-variant rounded text-primary font-semibold">
                     {currentParty.distributorId}
@@ -692,7 +700,8 @@ export default function LedgerAccountBookPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Party / Business Name <span className="text-error">*</span>
+                          Party / Business Name{" "}
+                          <span className="text-error">*</span>
                         </label>
                         <input
                           type="text"
@@ -705,7 +714,8 @@ export default function LedgerAccountBookPage() {
 
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Distributor / Account ID <span className="text-error">*</span>
+                          Distributor / Account ID{" "}
+                          <span className="text-error">*</span>
                         </label>
                         <input
                           type="text"
@@ -725,7 +735,10 @@ export default function LedgerAccountBookPage() {
                         {(
                           [
                             { id: "customer", label: "Customer / Buyer" },
-                            { id: "distributor", label: "Distributor / Stockist" },
+                            {
+                              id: "distributor",
+                              label: "Distributor / Stockist",
+                            },
                             { id: "vendor", label: "Vendor / Supplier" },
                           ] as const
                         ).map((type) => (
@@ -808,7 +821,8 @@ export default function LedgerAccountBookPage() {
 
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Approved Credit Limit (₹) <span className="text-error">*</span>
+                          Approved Credit Limit (₹){" "}
+                          <span className="text-error">*</span>
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">
@@ -836,10 +850,14 @@ export default function LedgerAccountBookPage() {
                         onChange={(e) => setEditPaymentTerms(e.target.value)}
                         className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-medium text-xs text-on-surface"
                       >
-                        <option value="Immediate / COD">Immediate / COD (Cash on Delivery)</option>
+                        <option value="Immediate / COD">
+                          Immediate / COD (Cash on Delivery)
+                        </option>
                         <option value="Net 7 Days">Net 7 Days</option>
                         <option value="Net 15 Days">Net 15 Days</option>
-                        <option value="Net 30 Days">Net 30 Days (Standard)</option>
+                        <option value="Net 30 Days">
+                          Net 30 Days (Standard)
+                        </option>
                         <option value="Net 45 Days">Net 45 Days</option>
                         <option value="Net 60 Days">Net 60 Days</option>
                       </select>
@@ -849,7 +867,8 @@ export default function LedgerAccountBookPage() {
                     <div className="bg-surface-container-low p-3.5 rounded-sm border border-outline-variant space-y-2">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-primary flex items-center gap-1.5">
-                          <ShieldCheck className="w-3.5 h-3.5 text-secondary" /> Credit Limit Assessment
+                          <ShieldCheck className="w-3.5 h-3.5 text-secondary" />{" "}
+                          Credit Limit Assessment
                         </span>
                         <span className="font-code font-bold text-xs">
                           {utilizationPct}% Utilized
@@ -868,7 +887,10 @@ export default function LedgerAccountBookPage() {
                         />
                       </div>
                       <div className="flex justify-between text-[11px] text-on-surface-variant">
-                        <span>Current Dues: {formatINR(currentParty.outstandingBalance)}</span>
+                        <span>
+                          Current Dues:{" "}
+                          {formatINR(currentParty.outstandingBalance)}
+                        </span>
                         <span>
                           Available Credit:{" "}
                           <strong>
@@ -891,7 +913,8 @@ export default function LedgerAccountBookPage() {
                     <div className="bg-surface-container-low p-3.5 rounded-sm border border-outline-variant space-y-3">
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Current Outstanding Balance (₹) <span className="text-error">*</span>
+                          Current Outstanding Balance (₹){" "}
+                          <span className="text-error">*</span>
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">
@@ -1001,10 +1024,14 @@ export default function LedgerAccountBookPage() {
                   id="payment-modal-title"
                   className="text-base font-bold text-primary flex items-center gap-2"
                 >
-                  <CreditCard className="w-4 h-4 text-primary" /> Record Party Payment Receipt
+                  <CreditCard className="w-4 h-4 text-primary" /> Record Party
+                  Payment Receipt
                 </h3>
                 <p className="text-xs text-on-surface-variant mt-0.5">
-                  Party: <span className="font-semibold text-primary">{currentParty.name}</span>{" "}
+                  Party:{" "}
+                  <span className="font-semibold text-primary">
+                    {currentParty.name}
+                  </span>{" "}
                   ({currentParty.distributorId})
                 </p>
               </div>
@@ -1121,7 +1148,8 @@ export default function LedgerAccountBookPage() {
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px]">
-                      Received Payment Amount (₹) <span className="text-error">*</span>
+                      Received Payment Amount (₹){" "}
+                      <span className="text-error">*</span>
                     </label>
                   </div>
                   <div className="relative">
@@ -1160,9 +1188,9 @@ export default function LedgerAccountBookPage() {
                           type="button"
                           onClick={() =>
                             setPaymentAmount(
-                              (
-                                currentParty.outstandingBalance * pct
-                              ).toFixed(2),
+                              (currentParty.outstandingBalance * pct).toFixed(
+                                2,
+                              ),
                             )
                           }
                           className="px-2.5 py-1 text-[11px] font-semibold border border-outline-variant bg-surface-container hover:bg-surface-container-high rounded-xs text-on-surface cursor-pointer"
@@ -1211,7 +1239,8 @@ export default function LedgerAccountBookPage() {
 
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Payment / Receipt Date <span className="text-error">*</span>
+                      Payment / Receipt Date{" "}
+                      <span className="text-error">*</span>
                     </label>
                     <input
                       type="date"
@@ -1301,10 +1330,12 @@ export default function LedgerAccountBookPage() {
                   id="add-party-title"
                   className="text-base font-bold text-primary flex items-center gap-2"
                 >
-                  <UserPlus className="w-4 h-4 text-primary" /> Add New Customer / Distributor Account
+                  <UserPlus className="w-4 h-4 text-primary" /> Add New Customer
+                  / Distributor Account
                 </h3>
                 <p className="text-xs text-on-surface-variant mt-0.5">
-                  Register a verified ledger khata master with opening balance and credit terms
+                  Register a verified ledger khata master with opening balance
+                  and credit terms
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -1360,7 +1391,8 @@ export default function LedgerAccountBookPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Party / Business Name <span className="text-error">*</span>
+                      Party / Business Name{" "}
+                      <span className="text-error">*</span>
                     </label>
                     <input
                       type="text"
@@ -1436,14 +1468,17 @@ export default function LedgerAccountBookPage() {
                       type="text"
                       placeholder="07AAAAA0000A1Z5"
                       value={newGstin}
-                      onChange={(e) => setNewGstin(e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        setNewGstin(e.target.value.toUpperCase())
+                      }
                       className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-code text-xs text-on-surface"
                     />
                   </div>
 
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Approved Credit Limit (₹) <span className="text-error">*</span>
+                      Approved Credit Limit (₹){" "}
+                      <span className="text-error">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">
@@ -1493,7 +1528,9 @@ export default function LedgerAccountBookPage() {
                     >
                       <option value="Immediate / COD">Immediate / COD</option>
                       <option value="Net 15 Days">Net 15 Days</option>
-                      <option value="Net 30 Days">Net 30 Days (Standard)</option>
+                      <option value="Net 30 Days">
+                        Net 30 Days (Standard)
+                      </option>
                       <option value="Net 45 Days">Net 45 Days</option>
                       <option value="Net 60 Days">Net 60 Days</option>
                     </select>

@@ -462,10 +462,12 @@ export default function ExpiryActionBoardPage() {
                   id="return-modal-title"
                   className="text-base font-bold text-primary flex items-center gap-2"
                 >
-                  <RotateCcw className="w-4 h-4 text-error" /> Generate Purchase Return
+                  <RotateCcw className="w-4 h-4 text-error" /> Generate Purchase
+                  Return
                 </h3>
                 <p className="text-xs text-on-surface-variant mt-0.5">
-                  Quarantine {selectedItemsList.length} items and issue supplier debit voucher
+                  Quarantine {selectedItemsList.length} items and issue supplier
+                  debit voucher
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -492,7 +494,8 @@ export default function ExpiryActionBoardPage() {
               <div className="space-y-4 p-5 overflow-y-auto flex-1 text-xs">
                 <div>
                   <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                    Supplier / Vendor for Return <span className="text-error">*</span>
+                    Supplier / Vendor for Return{" "}
+                    <span className="text-error">*</span>
                   </label>
                   <input
                     type="text"
@@ -600,7 +603,8 @@ export default function ExpiryActionBoardPage() {
                     type="submit"
                     className="px-5 py-2 bg-primary text-on-primary font-semibold text-xs rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
-                    <FileCheck className="w-3.5 h-3.5" /> Confirm & Issue Debit Note
+                    <FileCheck className="w-3.5 h-3.5" /> Confirm & Issue Debit
+                    Note
                   </button>
                 </div>
               </div>

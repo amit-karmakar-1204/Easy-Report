@@ -433,7 +433,8 @@ export default function LiveInventoryGridPage() {
                     id="inventory-edit-title"
                     className="text-base font-bold text-primary flex items-center gap-2"
                   >
-                    <FileEdit className="w-4 h-4 text-primary" /> Adjust Stock & Edit Master
+                    <FileEdit className="w-4 h-4 text-primary" /> Adjust Stock &
+                    Edit Master
                   </h3>
                   <button
                     type="button"
@@ -542,8 +543,11 @@ export default function LiveInventoryGridPage() {
                                     : "bg-error-container text-on-error-container"
                                 }`}
                               >
-                                {editStock > editingItem.currentStock ? "+" : ""}
-                                {editStock - editingItem.currentStock} {editingItem.unit}
+                                {editStock > editingItem.currentStock
+                                  ? "+"
+                                  : ""}
+                                {editStock - editingItem.currentStock}{" "}
+                                {editingItem.unit}
                               </span>
                             )}
                           </div>
@@ -579,9 +583,7 @@ export default function LiveInventoryGridPage() {
                               key={step}
                               type="button"
                               onClick={() =>
-                                setEditStock((prev) =>
-                                  Math.max(0, prev + step),
-                                )
+                                setEditStock((prev) => Math.max(0, prev + step))
                               }
                               className={`px-2.5 py-1 font-code text-xs font-semibold rounded-xs border transition-colors cursor-pointer ${
                                 step > 0
@@ -594,7 +596,9 @@ export default function LiveInventoryGridPage() {
                           ))}
                           <button
                             type="button"
-                            onClick={() => setEditStock(editingItem.currentStock)}
+                            onClick={() =>
+                              setEditStock(editingItem.currentStock)
+                            }
                             className="px-2 py-1 text-[11px] font-semibold text-on-surface-variant border border-outline-variant bg-surface-container hover:bg-surface-container-high rounded-xs ml-auto cursor-pointer"
                           >
                             Reset ({editingItem.currentStock})
@@ -635,7 +639,8 @@ export default function LiveInventoryGridPage() {
 
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Status Classification <span className="text-error">*</span>
+                          Status Classification{" "}
+                          <span className="text-error">*</span>
                         </label>
                         <select
                           value={editStatus}
@@ -656,9 +661,13 @@ export default function LiveInventoryGridPage() {
                                 : "border-error text-error bg-error-container/20"
                           }`}
                         >
-                          <option value="OPTIMAL">OPTIMAL (Healthy Stock)</option>
+                          <option value="OPTIMAL">
+                            OPTIMAL (Healthy Stock)
+                          </option>
                           <option value="LOW">LOW (Approaching Reorder)</option>
-                          <option value="CRITICAL">CRITICAL (Action Required)</option>
+                          <option value="CRITICAL">
+                            CRITICAL (Action Required)
+                          </option>
                           <option value="EXPIRED">EXPIRED (Quarantine)</option>
                         </select>
                       </div>
@@ -667,7 +676,8 @@ export default function LiveInventoryGridPage() {
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px]">
-                          Warehouse Rack / Bay / Shelf Location <span className="text-error">*</span>
+                          Warehouse Rack / Bay / Shelf Location{" "}
+                          <span className="text-error">*</span>
                         </label>
                       </div>
                       <input
@@ -687,7 +697,8 @@ export default function LiveInventoryGridPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Purchase Rate / Cost (₹) <span className="text-error">*</span>
+                          Purchase Rate / Cost (₹){" "}
+                          <span className="text-error">*</span>
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">
@@ -698,7 +709,9 @@ export default function LiveInventoryGridPage() {
                             step="0.01"
                             min="0"
                             value={editPurchaseRate}
-                            onChange={(e) => setEditPurchaseRate(e.target.value)}
+                            onChange={(e) =>
+                              setEditPurchaseRate(e.target.value)
+                            }
                             required
                             className="w-full pl-6 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-code font-bold text-xs"
                           />
@@ -707,7 +720,8 @@ export default function LiveInventoryGridPage() {
 
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Selling Price (₹) <span className="text-error">*</span>
+                          Selling Price (₹){" "}
+                          <span className="text-error">*</span>
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">
@@ -750,14 +764,16 @@ export default function LiveInventoryGridPage() {
                       const cost = parseFloat(editPurchaseRate) || 0;
                       const sale = parseFloat(editSalePrice) || 0;
                       const unitProfit = sale - cost;
-                      const marginPct = sale > 0 ? (unitProfit / sale) * 100 : 0;
+                      const marginPct =
+                        sale > 0 ? (unitProfit / sale) * 100 : 0;
                       const totalValuation = editStock * cost;
 
                       return (
                         <div className="bg-surface-container-low p-4 rounded-sm border border-outline-variant space-y-3">
                           <div className="flex justify-between items-center border-b border-outline-variant/60 pb-2">
                             <span className="font-bold text-xs text-primary flex items-center gap-1.5">
-                              <TrendingUp className="w-3.5 h-3.5 text-secondary" /> Profit Margin & Asset Valuation
+                              <TrendingUp className="w-3.5 h-3.5 text-secondary" />{" "}
+                              Profit Margin & Asset Valuation
                             </span>
                             <span
                               className={`text-xs font-bold font-code px-2 py-0.5 rounded ${

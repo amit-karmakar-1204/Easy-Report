@@ -1,6 +1,17 @@
 "use client";
 
-import { Bell, Menu, RefreshCw, Search, X } from "lucide-react";
+import {
+  Bell,
+  Check,
+  Cloud,
+  CloudOff,
+  Database,
+  Loader2,
+  Menu,
+  RefreshCw,
+  Search,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
@@ -19,20 +30,32 @@ export function Navbar({
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const { metrics, resetToDefaults } = useERP();
+  const [showCloudModal, setShowCloudModal] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState<string | null>(null);
+
+  const {
+    metrics,
+    resetToDefaults,
+    isFirebaseConnected,
+    isFirebaseActive,
+    seedFirestore,
+  } = useERP();
   const router = useRouter();
 
   const notifRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const cloudModalRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns on outside click or Escape key
   useEffect(() => {
-    if (!showNotifications && !showUserMenu) return;
+    if (!showNotifications && !showUserMenu && !showCloudModal) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setShowNotifications(false);
         setShowUserMenu(false);
+        setShowCloudModal(false);
       }
     };
 
@@ -51,6 +74,13 @@ export function Navbar({
       ) {
         setShowUserMenu(false);
       }
+      if (
+        showCloudModal &&
+        cloudModalRef.current &&
+        !cloudModalRef.current.contains(e.target as Node)
+      ) {
+        setShowCloudModal(false);
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -60,12 +90,11 @@ export function Navbar({
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showNotifications, showUserMenu]);
+  }, [showNotifications, showUserMenu, showCloudModal]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    // Route to invoice search or inventory search based on query
     if (
       searchQuery.toLowerCase().startsWith("inv") ||
       searchQuery.toLowerCase().startsWith("cust")
@@ -73,6 +102,19 @@ export function Navbar({
       router.push(`/sale-modify?q=${encodeURIComponent(searchQuery)}`);
     } else {
       router.push(`/inventory?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleSeedCloud = async () => {
+    setIsSeeding(true);
+    setSeedResult(null);
+    try {
+      const res = await seedFirestore();
+      setSeedResult(res.message);
+    } catch (err) {
+      setSeedResult(`Error: ${(err as Error).message}`);
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -123,6 +165,110 @@ export function Navbar({
 
       {/* Right Action Icons */}
       <div className="flex items-center gap-2">
+        {/* Firebase Cloud Status Indicator */}
+        <div className="relative" ref={cloudModalRef}>
+          <button
+            onClick={() => setShowCloudModal(!showCloudModal)}
+            title={
+              isFirebaseActive
+                ? "Firebase Firestore Connected"
+                : "Firebase Offline / Local Storage Mode"
+            }
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-sm border transition-colors ${
+              isFirebaseActive
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                : "bg-surface-container-high text-on-surface-variant border-outline-variant hover:bg-surface-container-highest"
+            }`}
+          >
+            {isFirebaseActive ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <Cloud className="w-3.5 h-3.5" />
+                <span className="hidden md:inline font-medium">Firebase</span>
+              </>
+            ) : (
+              <>
+                <CloudOff className="w-3.5 h-3.5 text-on-surface-variant" />
+                <span className="hidden md:inline text-on-surface-variant">
+                  Local Mode
+                </span>
+              </>
+            )}
+          </button>
+
+          {/* Cloud Status Modal / Popover */}
+          {showCloudModal && (
+            <div className="absolute right-0 mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-sm shadow-xl p-4 z-50 text-xs animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between pb-2 border-b border-outline-variant mb-3">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-sm text-primary">
+                    Firebase Backend
+                  </span>
+                </div>
+                <span
+                  className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                    isFirebaseActive
+                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                  }`}
+                >
+                  {isFirebaseActive ? "Connected" : "Local Mode"}
+                </span>
+              </div>
+
+              <p className="text-on-surface-variant mb-3 leading-relaxed">
+                {isFirebaseActive
+                  ? "Your ERP is connected to Google Cloud Firestore with real-time live synchronization active across invoices, purchases, inventory, and party accounts."
+                  : "Currently running in local fallback mode using browser storage. Add your Firebase credentials in .env.local to activate Cloud Firestore synchronization."}
+              </p>
+
+              {isFirebaseActive ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={handleSeedCloud}
+                    disabled={isSeeding}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-primary text-on-primary rounded-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    {isSeeding ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Seeding Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Database className="w-3.5 h-3.5" />
+                        <span>Seed Cloud Database</span>
+                      </>
+                    )}
+                  </button>
+
+                  {seedResult && (
+                    <p className="text-[11px] p-2 bg-surface-container-high rounded text-on-surface border border-outline-variant">
+                      {seedResult}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-2.5 bg-surface-container-high rounded border border-outline-variant text-[11px] text-on-surface-variant space-y-1">
+                  <p className="font-semibold text-on-surface">To connect:</p>
+                  <p>
+                    1. Open{" "}
+                    <code className="bg-surface-container px-1 py-0.5 rounded">
+                      .env.local
+                    </code>
+                  </p>
+                  <p>2. Fill in your Firebase Web App credentials</p>
+                  <p>3. Restart development server</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Reset / Demo Data Sync */}
         <button
           onClick={() => {

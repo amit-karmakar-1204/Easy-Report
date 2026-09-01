@@ -618,7 +618,9 @@ export default function ActiveBillingPage() {
                 <div className="flex justify-between text-[11px] py-1 border-b border-outline-variant/60">
                   <div>
                     <span className="text-on-surface-variant">Invoice:</span>{" "}
-                    <span className="font-bold text-primary">{lastSavedInvoice.invoiceNo}</span>
+                    <span className="font-bold text-primary">
+                      {lastSavedInvoice.invoiceNo}
+                    </span>
                   </div>
                   <div>
                     <span className="text-on-surface-variant">Date:</span>{" "}
@@ -628,7 +630,9 @@ export default function ActiveBillingPage() {
 
                 <div className="text-[11px]">
                   <span className="text-on-surface-variant">Customer:</span>{" "}
-                  <span className="font-bold text-on-surface">{lastSavedInvoice.customerName}</span>{" "}
+                  <span className="font-bold text-on-surface">
+                    {lastSavedInvoice.customerName}
+                  </span>{" "}
                   <span className="text-[10px] px-1.5 py-0.5 bg-surface-container border border-outline-variant rounded uppercase font-semibold">
                     {lastSavedInvoice.paymentType}
                   </span>

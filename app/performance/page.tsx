@@ -647,7 +647,9 @@ export default function PerformanceReportPage() {
                       <div className="flex items-center gap-1.5">
                         <span
                           className={`font-code font-bold text-sm ${
-                            poItem.reorderRequired ? "text-error" : "text-primary"
+                            poItem.reorderRequired
+                              ? "text-error"
+                              : "text-primary"
                           }`}
                         >
                           {poItem.currentStock.toLocaleString()}
@@ -718,7 +720,8 @@ export default function PerformanceReportPage() {
                     {/* Primary Supplier */}
                     <div>
                       <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                        Primary Vendor / Supplier <span className="text-error">*</span>
+                        Primary Vendor / Supplier{" "}
+                        <span className="text-error">*</span>
                       </label>
                       <div className="relative">
                         <Building2 className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
@@ -810,10 +813,18 @@ export default function PerformanceReportPage() {
                         onChange={(e) => setPoZone(e.target.value)}
                         className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs font-medium text-on-surface"
                       >
-                        <option value="Zone A - Bay 04">Zone A - Bay 04 (General)</option>
-                        <option value="Zone B - Cold Storage">Zone B - Cold Storage (Perishables)</option>
-                        <option value="Zone C - Heavy Bulk">Zone C - Heavy Bulk</option>
-                        <option value="Main Hub - Receiving 01">Main Hub - Receiving 01</option>
+                        <option value="Zone A - Bay 04">
+                          Zone A - Bay 04 (General)
+                        </option>
+                        <option value="Zone B - Cold Storage">
+                          Zone B - Cold Storage (Perishables)
+                        </option>
+                        <option value="Zone C - Heavy Bulk">
+                          Zone C - Heavy Bulk
+                        </option>
+                        <option value="Main Hub - Receiving 01">
+                          Main Hub - Receiving 01
+                        </option>
                       </select>
                     </div>
 
@@ -840,9 +851,13 @@ export default function PerformanceReportPage() {
                               : "border-outline-variant text-primary bg-surface-container-lowest"
                         }`}
                       >
-                        <option value="Standard">Standard (Ground Freight)</option>
+                        <option value="Standard">
+                          Standard (Ground Freight)
+                        </option>
                         <option value="Urgent">Urgent (Express Courier)</option>
-                        <option value="Critical Restock">Critical Restock (Air Priority)</option>
+                        <option value="Critical Restock">
+                          Critical Restock (Air Priority)
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -862,7 +877,8 @@ export default function PerformanceReportPage() {
                         className="text-[10px] font-bold text-secondary hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Sparkles className="w-3 h-3" />
-                        Apply Optimal Restock ({recommendedBufferQty.toLocaleString()} units)
+                        Apply Optimal Restock (
+                        {recommendedBufferQty.toLocaleString()} units)
                       </button>
                     )}
                   </div>
@@ -871,12 +887,15 @@ export default function PerformanceReportPage() {
                     {/* Quantity Input with Steppers */}
                     <div className="sm:col-span-6 space-y-1.5">
                       <label className="block font-bold text-on-surface-variant uppercase text-[10px]">
-                        Reorder Quantity (Units) <span className="text-error">*</span>
+                        Reorder Quantity (Units){" "}
+                        <span className="text-error">*</span>
                       </label>
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => setPoQty((prev) => Math.max(50, prev - 100))}
+                          onClick={() =>
+                            setPoQty((prev) => Math.max(50, prev - 100))
+                          }
                           className="px-2.5 py-1.5 border border-outline-variant bg-surface-container hover:bg-surface-container-high rounded-sm text-on-surface cursor-pointer font-bold"
                           title="Decrease by 100"
                         >
@@ -954,7 +973,9 @@ export default function PerformanceReportPage() {
                         </label>
                         <select
                           value={poGSTRate}
-                          onChange={(e) => setPoGSTRate(parseInt(e.target.value, 10))}
+                          onChange={(e) =>
+                            setPoGSTRate(parseInt(e.target.value, 10))
+                          }
                           className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs font-medium text-on-surface"
                         >
                           <option value={18}>18% Standard GST</option>
@@ -983,7 +1004,8 @@ export default function PerformanceReportPage() {
                         </span>
                         {poGSTRate > 0 && (
                           <span className="text-[10px] text-on-surface-variant">
-                            (Subtotal {formatINR(calculatedPoSubtotal)} + {poGSTRate}% GST)
+                            (Subtotal {formatINR(calculatedPoSubtotal)} +{" "}
+                            {poGSTRate}% GST)
                           </span>
                         )}
                       </div>

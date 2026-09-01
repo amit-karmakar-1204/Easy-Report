@@ -414,10 +414,14 @@ export default function PurchaseModifyPage() {
                   id="purchase-edit-title"
                   className="text-base font-bold text-primary flex items-center gap-2"
                 >
-                  <FileEdit className="w-4 h-4 text-primary" /> Modify Purchase Record
+                  <FileEdit className="w-4 h-4 text-primary" /> Modify Purchase
+                  Record
                 </h3>
                 <p className="text-xs text-on-surface-variant font-code mt-0.5">
-                  Ref: <span className="font-bold text-primary">{editingPurchase.purchaseId}</span>
+                  Ref:{" "}
+                  <span className="font-bold text-primary">
+                    {editingPurchase.purchaseId}
+                  </span>
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -478,7 +482,10 @@ export default function PurchaseModifyPage() {
                       value={editStatus}
                       onChange={(e) =>
                         setEditStatus(
-                          e.target.value as "Completed" | "Pending" | "Cancelled",
+                          e.target.value as
+                            | "Completed"
+                            | "Pending"
+                            | "Cancelled",
                         )
                       }
                       className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none font-bold text-xs text-primary"
@@ -551,7 +558,11 @@ export default function PurchaseModifyPage() {
                                 type="text"
                                 value={item.batchNo}
                                 onChange={(e) =>
-                                  handleUpdateItem(idx, "batchNo", e.target.value)
+                                  handleUpdateItem(
+                                    idx,
+                                    "batchNo",
+                                    e.target.value,
+                                  )
                                 }
                                 className="w-full bg-surface-container-lowest border border-outline-variant rounded-xs px-1 py-0.5 font-code text-[11px]"
                               />
@@ -632,7 +643,8 @@ export default function PurchaseModifyPage() {
                           const val = e.target.value;
                           setNewItemName(val);
                           const match = inventory.find(
-                            (inv) => inv.name.toLowerCase() === val.toLowerCase(),
+                            (inv) =>
+                              inv.name.toLowerCase() === val.toLowerCase(),
                           );
                           if (match) {
                             setNewItemRate(match.purchaseRate.toString());
@@ -723,8 +735,14 @@ export default function PurchaseModifyPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm("Cancel and mark this purchase record as Cancelled?")) {
-                      updatePurchase(editingPurchase.id, { status: "Cancelled" });
+                    if (
+                      confirm(
+                        "Cancel and mark this purchase record as Cancelled?",
+                      )
+                    ) {
+                      updatePurchase(editingPurchase.id, {
+                        status: "Cancelled",
+                      });
                       setEditingPurchase(null);
                       setToastMessage("Purchase record marked as Cancelled.");
                       setTimeout(() => setToastMessage(null), 3000);
