@@ -1,0 +1,28 @@
+{
+  "id": 1788252963613,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/35be5b3e851c46db878ec045ce8e5d1e\",\"title\":\"Expiry Action Board (Expired Items)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/10362980805993776278\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1WMk9k0M-uQzQAkXIKaNoW5sxAvDGtJyiV8-vMMqmGKFUx_NMobLUYeXGHP-wIBoGrbcPxIdPqi8FZnYZY_iMDTr3IbceKUxmw7il5tuKOhZEyslApD9kn0XcYC_yGB1v30ttrS5r0owvv375B0OsePsXcKzuTV6zzrTTs65-bJBxPVK366rdV4JPiIwSvU5A5LKegsoDOE2AcQ-n7WEgjHWoZbCiiZEyEizXjYTKSRtkwiWadXyrjdm1o\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/5923796896986397672\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGIyNzZiOTQwMWI0ZTQwMTNmMjBmMzFmEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGIyNzZiOTQwMWI0ZTQwMTNmMjBmMzFmEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/files/5923796896986397672"
+      },
+      "name": "projects/7269570520349594329/screens/35be5b3e851c46db878ec045ce8e5d1e",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1WMk9k0M-uQzQAkXIKaNoW5sxAvDGtJyiV8-vMMqmGKFUx_NMobLUYeXGHP-wIBoGrbcPxIdPqi8FZnYZY_iMDTr3IbceKUxmw7il5tuKOhZEyslApD9kn0XcYC_yGB1v30ttrS5r0owvv375B0OsePsXcKzuTV6zzrTTs65-bJBxPVK366rdV4JPiIwSvU5A5LKegsoDOE2AcQ-n7WEgjHWoZbCiiZEyEizXjYTKSRtkwiWadXyrjdm1o",
+        "name": "projects/7269570520349594329/files/10362980805993776278"
+      },
+      "title": "Expiry Action Board (Expired Items)",
+      "width": "2560"
+    }
+  }
+}

@@ -1,0 +1,299 @@
+<!DOCTYPE html><html class="h-full" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Active Billing (Sale) - Easy Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#930013",
+                        "secondary": "#006c49",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#6cf8bb",
+                        "primary-fixed-dim": "#c0c6db",
+                        "secondary-fixed-dim": "#4edea3",
+                        "tertiary-container": "#410004",
+                        "tertiary-fixed-dim": "#ffb3ad",
+                        "on-surface-variant": "#45464c",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-dim": "#d8dade",
+                        "tertiary-fixed": "#ffdad7",
+                        "inverse-on-surface": "#eff1f5",
+                        "on-primary-container": "#7d8497",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#76777d",
+                        "on-tertiary-fixed": "#410004",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#00714d",
+                        "on-background": "#191c1f",
+                        "primary-fixed": "#dce2f7",
+                        "on-primary-fixed": "#141b2b",
+                        "surface-container-high": "#e6e8ec",
+                        "primary-container": "#141b2b",
+                        "inverse-surface": "#2d3134",
+                        "on-primary-fixed-variant": "#404758",
+                        "inverse-primary": "#c0c6db",
+                        "surface": "#f7f9fd",
+                        "on-error-container": "#93000a",
+                        "background": "#f7f9fd",
+                        "on-surface": "#191c1f",
+                        "surface-tint": "#575e70",
+                        "surface-container-highest": "#e0e2e6",
+                        "primary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#ef4444",
+                        "surface-container": "#eceef2",
+                        "outline-variant": "#c6c6cd",
+                        "tertiary": "#000000",
+                        "on-secondary-fixed-variant": "#005236",
+                        "surface-container-low": "#f2f4f8",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#f7f9fd",
+                        "surface-variant": "#e0e2e6"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.125rem",
+                        lg: "0.25rem",
+                        xl: "0.5rem",
+                        full: "0.75rem"
+                    },
+                    spacing: {
+                        xl: "32px",
+                        sm: "8px",
+                        base: "4px",
+                        xs: "4px",
+                        gutter: "16px",
+                        md: "16px",
+                        lg: "24px",
+                        "container-margin": "24px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Inter"],
+                        "display": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "code": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-bold": ["Inter"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "display": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "label-md": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "code": ["13px", { lineHeight: "18px", fontWeight: "400" }],
+                        "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "label-bold": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input:focus {
+            outline: none;
+            border-color: #111827;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-full flex overflow-hidden">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-16 bottom-0 w-[240px] flex flex-col py-md bg-surface-bright dark:bg-surface-container-low border-r border-outline-variant dark:border-outline flat no shadows transition-all duration-150 ease-in-out z-40 hidden md:flex">
+<!-- Header area removed as per flat UI standard, TopNavBar handles branding -->
+<div class="flex-1 overflow-y-auto mt-4">
+<a class="flex items-center px-lg py-sm text-on-surface hover:bg-surface-container-highest dark:hover:bg-surface-container-high transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">menu_book</span>
+                Ledger A/C
+            </a>
+<a class="flex items-center px-lg py-sm text-on-surface hover:bg-surface-container-highest dark:hover:bg-surface-container-high transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">inventory_2</span>
+                Stock Status
+            </a>
+<a class="flex items-center px-lg py-sm text-on-surface hover:bg-surface-container-highest dark:hover:bg-surface-container-high transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">analytics</span>
+                Stock and Sale Analysis
+            </a>
+</div>
+<div class="mt-auto border-t border-outline-variant dark:border-outline pt-sm">
+<a class="flex items-center px-lg py-sm text-on-surface hover:bg-surface-container-highest dark:hover:bg-surface-container-high transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">settings</span>
+                Settings
+            </a>
+<a class="flex items-center px-lg py-sm text-on-surface hover:bg-surface-container-highest dark:hover:bg-surface-container-high transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">logout</span>
+                Logout
+            </a>
+</div>
+</nav>
+<div class="flex flex-col flex-1 w-full md:pl-[240px]">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16 bg-surface dark:bg-surface-container-lowest border-b border-outline-variant dark:border-outline flat no shadows">
+<div class="flex items-center gap-md">
+<div class="font-display text-display text-primary dark:text-on-surface tracking-tight">EASY REPORT</div>
+<div class="h-6 w-px bg-outline-variant mx-sm"></div>
+<div class="font-headline-lg text-headline-lg text-primary dark:text-on-surface">Sale</div>
+</div>
+<div class="flex items-center gap-md">
+<!-- Search omitted as requested 'search_bar: on_left' but context implies full billing screen, keeping simple -->
+<button class="p-sm rounded hover:bg-surface-container-high transition-colors cursor-pointer active:bg-surface-dim text-primary dark:text-on-surface">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-sm rounded hover:bg-surface-container-high transition-colors cursor-pointer active:bg-surface-dim text-primary dark:text-on-surface">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 mt-16 p-[24px] overflow-y-auto bg-background">
+<!-- Customer Selection Card -->
+<div class="bg-surface-container-lowest border border-outline-variant mb-gutter">
+<div class="p-md flex items-end gap-gutter">
+<div class="flex-1">
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">CUSTOMER</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-[36px] pr-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors" placeholder="Search customer or select 'Cash'..." type="text" value="Cash Customer">
+</div>
+</div><div class="w-32">
+    <label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">PAYMENT TYPE</label>
+    <select class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors appearance-none">
+        <option value="cash">Cash</option>
+        <option value="credit">Credit</option>
+    </select>
+</div>
+<div>
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">DATE</label>
+<input class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors" type="date" value="2023-10-27">
+</div>
+<div>
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">INVOICE NO.</label>
+<input class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-low font-body-md text-body-md text-on-surface-variant rounded-none" readonly="" type="text" value="INV-004512">
+</div>
+</div>
+</div>
+<!-- Item Entry Row -->
+<div class="bg-surface-container-lowest border border-outline-variant mb-gutter">
+<div class="p-md grid grid-cols-12 gap-gutter items-end">
+<div class="col-span-5">
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">ITEM NAME / BARCODE</label>
+<input class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors autofocus" placeholder="Scan barcode or type item name..." type="text">
+</div>
+<div class="col-span-2">
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">QTY</label>
+<input class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors text-right" min="1" type="number" value="1">
+</div>
+<div class="col-span-2">
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">RATE (₹)</label>
+<input class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors text-right" step="0.01" type="number">
+</div>
+<div class="col-span-2">
+<label class="block font-label-bold text-label-bold text-on-surface-variant mb-sm">DISC (%)</label>
+<input class="w-full px-sm py-[8px] border border-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface focus:border-primary focus:ring-0 rounded-none transition-colors text-right" step="0.1" type="number" value="0">
+</div>
+<div class="col-span-1">
+<button class="w-full py-[8px] bg-primary text-on-primary hover:opacity-90 font-label-bold text-label-bold transition-opacity rounded-none h-[42px] flex items-center justify-center">
+                            ADD
+                        </button>
+</div>
+</div>
+</div>
+<!-- Billing Table -->
+<div class="bg-surface-container-lowest border border-outline-variant flex flex-col min-h-[400px]">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold w-12 text-center">#</th>
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold">ITEM DESCRIPTION</th>
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold text-right w-24">QTY</th>
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold text-right w-32">RATE (₹)</th>
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold text-right w-24">DISC %</th>
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold text-right w-32">TOTAL</th>
+<th class="py-sm px-md font-label-bold text-label-bold text-on-surface-variant font-semibold w-16 text-center">ACT</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<!-- Example Row 1 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors group">
+<td class="py-[12px] px-md text-center text-on-surface-variant">1</td>
+<td class="py-[12px] px-md text-on-surface">Industrial Steel Bearing 6204-ZZ</td>
+<td class="py-[12px] px-md text-right text-on-surface">50</td>
+<td class="py-[12px] px-md text-right text-on-surface">12.50</td>
+<td class="py-[12px] px-md text-right text-on-surface">5.0</td>
+<td class="py-[12px] px-md text-right font-medium text-on-surface">593.75</td>
+<td class="py-[12px] px-md text-center">
+<button class="text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<!-- Example Row 2 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors group">
+<td class="py-[12px] px-md text-center text-on-surface-variant">2</td>
+<td class="py-[12px] px-md text-on-surface">Heavy Duty Lubricant Spray 400ml</td>
+<td class="py-[12px] px-md text-right text-on-surface">12</td>
+<td class="py-[12px] px-md text-right text-on-surface">8.75</td>
+<td class="py-[12px] px-md text-right text-on-surface">0.0</td>
+<td class="py-[12px] px-md text-right font-medium text-on-surface">105.00</td>
+<td class="py-[12px] px-md text-center">
+<button class="text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Totals Section -->
+<div class="mt-auto bg-surface-container-low border-t border-outline-variant p-md grid grid-cols-12 gap-gutter items-center">
+<div class="col-span-6 font-body-md text-body-md text-on-surface-variant">
+                        Total Items: <span class="font-semibold text-on-surface">2</span> &nbsp;|&nbsp; Total Qty: <span class="font-semibold text-on-surface">62</span>
+</div>
+<div class="col-span-6 flex justify-end gap-xl items-center">
+<div class="text-right">
+<div class="font-label-bold text-label-bold text-on-surface-variant">SUBTOTAL</div>
+<div class="font-body-md text-body-md text-on-surface">₹ 698.75</div>
+</div>
+<div class="text-right">
+<div class="font-label-bold text-label-bold text-on-surface-variant">TAX (10%)</div>
+<div class="font-body-md text-body-md text-on-surface">₹ 69.88</div>
+</div>
+<div class="text-right pr-md">
+<div class="font-label-bold text-label-bold text-on-surface-variant">GRAND TOTAL</div>
+<div class="font-headline-md text-headline-md text-primary font-bold">₹ 768.63</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="flex justify-end gap-md mt-gutter">
+<button class="px-xl py-sm bg-surface-variant text-on-surface hover:bg-outline-variant border border-outline-variant transition-colors font-label-bold text-label-bold rounded-none">
+                    CLEAR
+                </button>
+<button class="px-xl py-sm bg-surface-variant text-on-surface hover:bg-outline-variant border border-outline-variant transition-colors font-label-bold text-label-bold rounded-none flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">pause</span> HOLD
+                </button>
+<button class="px-[32px] py-[12px] bg-primary text-on-primary hover:opacity-90 transition-opacity font-headline-md text-headline-md rounded-none flex items-center gap-sm ml-md">
+<span class="material-symbols-outlined">print</span> SAVE &amp; PRINT
+                </button>
+</div>
+</main>
+</div>
+
+
+</body></html>

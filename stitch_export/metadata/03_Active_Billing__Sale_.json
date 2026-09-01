@@ -1,0 +1,28 @@
+{
+  "id": 1788252943306,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/d7a6a0744a8544a5bfefac4dda161300\",\"title\":\"Active Billing (Sale)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/15555379828385478690\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1XU3zH9-o81STSlfSglSJ0mLJMmoj4FYrkY36xFfQVRpFFrXQXqw5oJ9pg5ebtb8oN1K_fqiE0NjCO03qFqJDFDabKjDscXAXV9V_vGYcPFY_GMcGLHYaR20AVYDs6mNIbgOCepQo6mBqkTNyvnGX_ic8kIcEi3BIs3PfnNFBt-qWCDN0IA2-3As8M32YPzw69teLM6G2DZu31NXmPXeMkUQXCZ31RaZzZnvrXYCJNmzvislHUreeZccGc\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/17962326175109530976\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MTgxNmNlOWEwOTI1ZDRlZDU3MTU2Y2YzEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"3040\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MTgxNmNlOWEwOTI1ZDRlZDU3MTU2Y2YzEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/files/17962326175109530976"
+      },
+      "name": "projects/7269570520349594329/screens/d7a6a0744a8544a5bfefac4dda161300",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1XU3zH9-o81STSlfSglSJ0mLJMmoj4FYrkY36xFfQVRpFFrXQXqw5oJ9pg5ebtb8oN1K_fqiE0NjCO03qFqJDFDabKjDscXAXV9V_vGYcPFY_GMcGLHYaR20AVYDs6mNIbgOCepQo6mBqkTNyvnGX_ic8kIcEi3BIs3PfnNFBt-qWCDN0IA2-3As8M32YPzw69teLM6G2DZu31NXmPXeMkUQXCZ31RaZzZnvrXYCJNmzvislHUreeZccGc",
+        "name": "projects/7269570520349594329/files/15555379828385478690"
+      },
+      "title": "Active Billing (Sale)",
+      "width": "3040"
+    }
+  }
+}

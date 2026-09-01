@@ -1,0 +1,28 @@
+{
+  "id": 1788252951083,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/923f33438b424d2bbb83d989cc46df6d\",\"title\":\"Purchase History List (Purchase Modify)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/3084293143248271432\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1WDCFRzhxtSDtjeETVKVN-Jhu95ximGVm7ODNTYXY8w5iifwMilXABgShErqxvRBKhAWN9E_ixAaOMSn4I4QCLdN5rC7wiSZ7uW5QKppClwW7N_ESxFdIFO84aSZijonPRTV5MjIrYCshyDMSUxhC8w1XA_EColw2x2NSAW_5H_slxMORErJ08UqIOB5c89-TPmA-XhgJiKdoHr3YwaCw4_TeRGNcOGPKUZtTRRIkZc8Jl3QlOvUZb1NQA\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/11534549475942060512\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI1YzRlNTgwOTEwNzZmOTU3MDRhN2RjEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI1YzRlNTgwOTEwNzZmOTU3MDRhN2RjEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/files/11534549475942060512"
+      },
+      "name": "projects/7269570520349594329/screens/923f33438b424d2bbb83d989cc46df6d",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1WDCFRzhxtSDtjeETVKVN-Jhu95ximGVm7ODNTYXY8w5iifwMilXABgShErqxvRBKhAWN9E_ixAaOMSn4I4QCLdN5rC7wiSZ7uW5QKppClwW7N_ESxFdIFO84aSZijonPRTV5MjIrYCshyDMSUxhC8w1XA_EColw2x2NSAW_5H_slxMORErJ08UqIOB5c89-TPmA-XhgJiKdoHr3YwaCw4_TeRGNcOGPKUZtTRRIkZc8Jl3QlOvUZb1NQA",
+        "name": "projects/7269570520349594329/files/3084293143248271432"
+      },
+      "title": "Purchase History List (Purchase Modify)",
+      "width": "2560"
+    }
+  }
+}

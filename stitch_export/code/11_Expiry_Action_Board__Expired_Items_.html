@@ -1,0 +1,300 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Expiry Action Board - EASY REPORT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#930013",
+                      "secondary": "#006c49",
+                      "error": "#ba1a1a",
+                      "secondary-container": "#6cf8bb",
+                      "primary-fixed-dim": "#c0c6db",
+                      "secondary-fixed-dim": "#4edea3",
+                      "tertiary-container": "#410004",
+                      "tertiary-fixed-dim": "#ffb3ad",
+                      "on-surface-variant": "#45464c",
+                      "on-secondary-fixed": "#002113",
+                      "secondary-fixed": "#6ffbbe",
+                      "surface-dim": "#d8dade",
+                      "tertiary-fixed": "#ffdad7",
+                      "inverse-on-surface": "#eff1f5",
+                      "on-primary-container": "#7d8497",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#76777d",
+                      "on-tertiary-fixed": "#410004",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "on-secondary-container": "#00714d",
+                      "on-background": "#191c1f",
+                      "primary-fixed": "#dce2f7",
+                      "on-primary-fixed": "#141b2b",
+                      "surface-container-high": "#e6e8ec",
+                      "primary-container": "#141b2b",
+                      "inverse-surface": "#2d3134",
+                      "on-primary-fixed-variant": "#404758",
+                      "inverse-primary": "#c0c6db",
+                      "surface": "#f7f9fd",
+                      "on-error-container": "#93000a",
+                      "background": "#f7f9fd",
+                      "on-surface": "#191c1f",
+                      "surface-tint": "#575e70",
+                      "surface-container-highest": "#e0e2e6",
+                      "primary": "#000000",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-container": "#ef4444",
+                      "surface-container": "#eceef2",
+                      "outline-variant": "#c6c6cd",
+                      "tertiary": "#000000",
+                      "on-secondary-fixed-variant": "#005236",
+                      "surface-container-low": "#f2f4f8",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#f7f9fd",
+                      "surface-variant": "#e0e2e6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "sm": "8px",
+                      "base": "4px",
+                      "xs": "4px",
+                      "gutter": "16px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "container-margin": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Inter"],
+                      "display": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "code": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "label-bold": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "code": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface h-full flex overflow-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<span class="font-display text-display text-primary tracking-tight">EASY REPORT</span>
+</div>
+<div class="flex-1 flex justify-center">
+<div class="relative w-full max-w-md hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded focus:outline-none focus:border-primary font-body-md text-body-md text-on-surface" placeholder="Search..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-primary hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:bg-surface-dim">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-primary hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:bg-surface-dim">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-16 bottom-0 w-[240px] flex flex-col py-md bg-surface-bright border-r border-outline-variant transition-all duration-150 ease-in-out hidden md:flex z-40">
+<div class="px-md mb-6">
+<h2 class="font-headline-lg text-headline-lg text-tertiary">Admin Panel</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Warehouse Alpha</p>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-1 px-2">
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="font-label-md text-label-md">Ledger A/C</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded bg-tertiary text-on-tertiary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+<span class="font-label-md text-label-md">Stock Status</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span class="font-label-md text-label-md">Stock and Sale Analysis</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="mt-auto px-2 border-t border-outline-variant pt-4">
+<ul class="space-y-1">
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-0 md:ml-[240px] mt-16 p-container-margin overflow-y-auto h-[calc(100vh-4rem)]">
+<div class="max-w-7xl mx-auto">
+<header class="mb-lg flex justify-between items-end border-b border-outline-variant pb-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Expiry Action Board</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage expired and near-expiry inventory items.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-lowest border border-outline-variant text-primary font-label-md text-label-md rounded hover:bg-surface-container-highest transition-colors">
+                        Export Report
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded hover:opacity-90 transition-opacity">
+                        Generate Purchase Return
+                    </button>
+</div>
+</header>
+<!-- Alert Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-lg">
+<div class="bg-error-container border border-error bg-opacity-20 p-md rounded flex items-start gap-4">
+<span class="material-symbols-outlined text-error text-[24px] mt-1" style="font-variation-settings: 'FILL' 1;">error</span>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-error-container">Critical: 142 Expired Items</h3>
+<p class="font-body-md text-body-md text-on-error-container mt-1 opacity-90">Immediate action required to remove these items from active stock.</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded flex items-start gap-4">
+<span class="material-symbols-outlined text-secondary text-[24px] mt-1">warning</span>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Warning: 89 Near-Expiry</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Items expiring within the next 30 days. Consider promotions.</p>
+</div>
+</div>
+</div>
+<!-- Actionable Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden">
+<div class="px-md py-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-on-surface">Expired Stock List</h2>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">filter_list</span>
+<select class="pl-8 pr-8 py-1.5 bg-surface border border-outline-variant rounded text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary appearance-none">
+<option>All Expired</option>
+<option>Food &amp; Bev</option>
+<option>Pharmaceuticals</option>
+</select>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-bright border-b border-outline-variant">
+<th class="p-3 font-label-bold text-label-bold text-on-surface-variant w-12">
+<input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+</th>
+<th class="p-3 font-label-bold text-label-bold text-on-surface-variant">Item Name</th>
+<th class="p-3 font-label-bold text-label-bold text-on-surface-variant">Batch Code</th>
+<th class="p-3 font-label-bold text-label-bold text-on-surface-variant">Expiry Date</th>
+<th class="p-3 font-label-bold text-label-bold text-on-surface-variant text-right">Stock Qty</th>
+<th class="p-3 font-label-bold text-label-bold text-on-surface-variant text-right">Est. Value</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-3">
+<input checked="" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+</td>
+<td class="p-3 font-body-md text-body-md text-on-surface font-medium">Organic Whole Milk 1L</td>
+<td class="p-3 font-code text-code text-on-surface-variant">BCH-8821-A</td>
+<td class="p-3 font-body-md text-body-md text-error font-medium">Oct 12, 2023</td>
+<td class="p-3 font-code text-code text-on-surface text-right">1,240</td>
+<td class="p-3 font-code text-code text-on-surface-variant text-right">₹3,472.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-3">
+<input checked="" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+</td>
+<td class="p-3 font-body-md text-body-md text-on-surface font-medium">Artisan Bread Loaf - Sourdough</td>
+<td class="p-3 font-code text-code text-on-surface-variant">BCH-9932-B</td>
+<td class="p-3 font-body-md text-body-md text-error font-medium">Oct 14, 2023</td>
+<td class="p-3 font-code text-code text-on-surface text-right">45</td>
+<td class="p-3 font-code text-code text-on-surface-variant text-right">₹216.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-3">
+<input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+</td>
+<td class="p-3 font-body-md text-body-md text-on-surface font-medium">Greek Yogurt Mixed Berry 500g</td>
+<td class="p-3 font-code text-code text-on-surface-variant">BCH-1024-C</td>
+<td class="p-3 font-body-md text-body-md text-error font-medium">Oct 15, 2023</td>
+<td class="p-3 font-code text-code text-on-surface text-right">320</td>
+<td class="p-3 font-code text-code text-on-surface-variant text-right">₹1,248.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-3">
+<input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+</td>
+<td class="p-3 font-body-md text-body-md text-on-surface font-medium">Fresh Spinach Pre-Washed 250g</td>
+<td class="p-3 font-code text-code text-on-surface-variant">BCH-7741-X</td>
+<td class="p-3 font-body-md text-body-md text-error font-medium">Oct 16, 2023</td>
+<td class="p-3 font-code text-code text-on-surface text-right">88</td>
+<td class="p-3 font-code text-code text-on-surface-variant text-right">₹308.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-3">
+<input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+</td>
+<td class="p-3 font-body-md text-body-md text-on-surface font-medium">Premium Ground Beef 80/20</td>
+<td class="p-3 font-code text-code text-on-surface-variant">BCH-5510-M</td>
+<td class="p-3 font-body-md text-body-md text-error font-medium">Oct 18, 2023</td>
+<td class="p-3 font-code text-code text-on-surface text-right">210</td>
+<td class="p-3 font-code text-code text-on-surface-variant text-right">₹1,890.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-md py-3 border-t border-outline-variant bg-surface-bright flex justify-between items-center text-on-surface-variant font-label-md text-label-md">
+<span class="">Showing 1 to 5 of 142 expired items</span>
+<div class="flex gap-2">
+<button class="px-2 py-1 border border-outline-variant rounded hover:bg-surface-container-high disabled:opacity-50" disabled="">Prev</button>
+<button class="px-2 py-1 border border-outline-variant rounded hover:bg-surface-container-high">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

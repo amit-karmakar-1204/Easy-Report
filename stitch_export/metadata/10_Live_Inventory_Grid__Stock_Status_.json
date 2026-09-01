@@ -1,0 +1,28 @@
+{
+  "id": 1788252961376,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b\",\"title\":\"Live Inventory Grid (Stock Status)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/screenshot\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1XnVnDeEnjL-L-qTCfs0zb8zTbMxT9ugXwje5RQZo-LvdRln8JcLiBYqqkUPqxAXrIMBFURCl8DnB5hlZzUV9pc1tmFNUdmQLyKUtVmW7JMW29eS1-FUgi_D971EpAeIoYm3sCkbXKCuAF05IKjxwM1aDSRO_GRpoJCsL-IsxmTKlKWrFrCTl20P-cU_zBBLItXVyJyEZAjhZC0lFtSDxhdjpH5FTuzyB0q7cFoO2mPQK3WXnitnGChCp8\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/html\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY2Y2Y5MmRmZDgwMjJkNDUxZmYzMjk4M2FiEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY2Y2Y5MmRmZDgwMjJkNDUxZmYzMjk4M2FiEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/html"
+      },
+      "name": "projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1XnVnDeEnjL-L-qTCfs0zb8zTbMxT9ugXwje5RQZo-LvdRln8JcLiBYqqkUPqxAXrIMBFURCl8DnB5hlZzUV9pc1tmFNUdmQLyKUtVmW7JMW29eS1-FUgi_D971EpAeIoYm3sCkbXKCuAF05IKjxwM1aDSRO_GRpoJCsL-IsxmTKlKWrFrCTl20P-cU_zBBLItXVyJyEZAjhZC0lFtSDxhdjpH5FTuzyB0q7cFoO2mPQK3WXnitnGChCp8",
+        "name": "projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/screenshot"
+      },
+      "title": "Live Inventory Grid (Stock Status)",
+      "width": "2560"
+    }
+  }
+}

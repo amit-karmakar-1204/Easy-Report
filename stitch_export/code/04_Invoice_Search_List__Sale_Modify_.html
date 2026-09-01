@@ -1,0 +1,284 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Modify Sale - EASY REPORT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#930013",
+                      "secondary": "#006c49",
+                      "error": "#ba1a1a",
+                      "secondary-container": "#6cf8bb",
+                      "primary-fixed-dim": "#c0c6db",
+                      "secondary-fixed-dim": "#4edea3",
+                      "tertiary-container": "#410004",
+                      "tertiary-fixed-dim": "#ffb3ad",
+                      "on-surface-variant": "#45464c",
+                      "on-secondary-fixed": "#002113",
+                      "secondary-fixed": "#6ffbbe",
+                      "surface-dim": "#d8dade",
+                      "tertiary-fixed": "#ffdad7",
+                      "inverse-on-surface": "#eff1f5",
+                      "on-primary-container": "#7d8497",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#76777d",
+                      "on-tertiary-fixed": "#410004",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "on-secondary-container": "#00714d",
+                      "on-background": "#191c1f",
+                      "primary-fixed": "#dce2f7",
+                      "on-primary-fixed": "#141b2b",
+                      "surface-container-high": "#e6e8ec",
+                      "primary-container": "#141b2b",
+                      "inverse-surface": "#2d3134",
+                      "on-primary-fixed-variant": "#404758",
+                      "inverse-primary": "#c0c6db",
+                      "surface": "#f7f9fd",
+                      "on-error-container": "#93000a",
+                      "background": "#f7f9fd",
+                      "on-surface": "#191c1f",
+                      "surface-tint": "#575e70",
+                      "surface-container-highest": "#e0e2e6",
+                      "primary": "#000000",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-container": "#ef4444",
+                      "surface-container": "#eceef2",
+                      "outline-variant": "#c6c6cd",
+                      "tertiary": "#000000",
+                      "on-secondary-fixed-variant": "#005236",
+                      "surface-container-low": "#f2f4f8",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#f7f9fd",
+                      "surface-variant": "#e0e2e6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "sm": "8px",
+                      "base": "4px",
+                      "xs": "4px",
+                      "gutter": "16px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "container-margin": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Inter"],
+                      "display": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "code": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "label-bold": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "code": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" data-snapdom="injected-import"></head>
+<body class="bg-background text-on-background font-body-md h-screen overflow-hidden flex">
+<nav class="bg-surface-bright border-r border-outline-variant fixed left-0 top-16 bottom-0 w-[240px] flex flex-col py-md z-40 hidden md:flex">
+<div class="px-lg pb-md mb-md border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">U</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-tertiary">Admin Panel</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Warehouse Alpha</div>
+</div>
+</div>
+</div>
+<div class="flex-1 px-sm space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+                Ledger A/C
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                Stock Status
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded bg-tertiary text-on-tertiary transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                Stock and Sale Analysis
+            </a>
+</div>
+<div class="px-sm mt-auto space-y-1 border-t border-outline-variant pt-md">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface hover:bg-surface-container-highest transition-all duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Logout
+            </a>
+</div>
+</nav>
+<header class="bg-surface text-primary border-b border-outline-variant fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16">
+<div class="flex items-center gap-md">
+<button class="md:hidden p-2 -ml-2 text-on-surface-variant hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="font-display text-display text-primary tracking-tight">EASY REPORT</span>
+<div class="relative hidden lg:block ml-xl">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded focus:border-primary focus:ring-0 font-body-md text-body-md w-64" placeholder="Quick find..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:bg-surface-dim">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:bg-surface-dim">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<main class="md:ml-[240px] mt-16 p-container-margin w-full flex-1 overflow-y-auto bg-background">
+<div class="max-w-6xl mx-auto space-y-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between border-b border-outline-variant pb-md gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-background">Modify Sale</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Locate a specific transaction to amend details or adjust ledger entries.</p>
+</div>
+<div class="flex items-center gap-2 text-sm text-on-surface-variant font-label-md text-label-md">
+<span class="">Fiscal Year: 2023-24</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-secondary">System Online</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-lg">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-bold text-label-bold text-on-surface mb-2 uppercase tracking-wide text-[10px]">Search Query</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">receipt_long</span>
+<input class="w-full bg-surface border border-outline-variant rounded pl-10 pr-3 py-2 font-code text-code focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Invoice Number or Customer Name" type="text">
+</div>
+</div>
+<div>
+<label class="block font-label-bold text-label-bold text-on-surface mb-2 uppercase tracking-wide text-[10px]">Start Date</label>
+<input class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-code text-code focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface-variant" type="date">
+</div>
+<div>
+<label class="block font-label-bold text-label-bold text-on-surface mb-2 uppercase tracking-wide text-[10px]">End Date</label>
+<input class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-code text-code focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface-variant" type="date">
+</div>
+</div>
+<div class="mt-md flex justify-end gap-3 border-t border-outline-variant pt-md">
+<button class="px-4 py-2 border border-outline-variant text-on-surface font-label-md text-label-md rounded hover:bg-surface-container-highest transition-colors">Reset</button>
+<button class="px-6 py-2 bg-primary text-on-primary font-label-md text-label-md rounded hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">search</span>
+                        Execute Search
+                    </button>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse whitespace-nowrap">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="py-3 px-4 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Invoice #</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Date</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Customer</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-right">Total Amount</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="py-3 px-4 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer transition-colors group">
+<td class="py-3 px-4 font-code text-code font-medium group-hover:text-primary">INV-84920</td>
+<td class="py-3 px-4 text-on-surface-variant">2023-10-24</td>
+<td class="py-3 px-4 font-medium">Acme Corporation Ltd.</td>
+<td class="py-3 px-4 font-code text-code text-right">₹12,450.00</td>
+<td class="py-3 px-4"><span class="inline-flex items-center px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-md text-[10px] uppercase tracking-wider">Paid</span></td>
+<td class="py-3 px-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit_document</span></button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer transition-colors group">
+<td class="py-3 px-4 font-code text-code font-medium group-hover:text-primary">INV-84921</td>
+<td class="py-3 px-4 text-on-surface-variant">2023-10-24</td>
+<td class="py-3 px-4 font-medium">Stark Industries</td>
+<td class="py-3 px-4 font-code text-code text-right">₹8,100.50</td>
+<td class="py-3 px-4"><div class="flex items-center gap-2"><span class="inline-flex items-center px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-[10px] uppercase tracking-wider">Pending</span><button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button></div></td>
+<td class="py-3 px-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit_document</span></button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer transition-colors group bg-surface-container-lowest">
+<td class="py-3 px-4 font-code text-code font-medium group-hover:text-primary">INV-84922</td>
+<td class="py-3 px-4 text-on-surface-variant">2023-10-23</td>
+<td class="py-3 px-4 font-medium">Wayne Enterprises</td>
+<td class="py-3 px-4 font-code text-code text-right">₹45,000.00</td>
+<td class="py-3 px-4"><span class="inline-flex items-center px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-md text-[10px] uppercase tracking-wider">Paid</span></td>
+<td class="py-3 px-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit_document</span></button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer transition-colors group">
+<td class="py-3 px-4 font-code text-code font-medium group-hover:text-primary">INV-84923</td>
+<td class="py-3 px-4 text-on-surface-variant">2023-10-22</td>
+<td class="py-3 px-4 font-medium">Globex Corporation</td>
+<td class="py-3 px-4 font-code text-code text-right">₹1,250.75</td>
+<td class="py-3 px-4"><div class="flex items-center gap-2"><span class="inline-flex items-center px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-[10px] uppercase tracking-wider">Pending</span><button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button></div></td>
+<td class="py-3 px-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit_document</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low cursor-pointer transition-colors group">
+<td class="py-3 px-4 font-code text-code font-medium group-hover:text-primary">INV-84924</td>
+<td class="py-3 px-4 text-on-surface-variant">2023-10-20</td>
+<td class="py-3 px-4 font-medium">Cyberdyne Systems</td>
+<td class="py-3 px-4 font-code text-code text-right">₹99,999.00</td>
+<td class="py-3 px-4"><div class="flex items-center gap-2"><span class="inline-flex items-center px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-md text-[10px] uppercase tracking-wider">Overdue</span><button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button></div></td>
+<td class="py-3 px-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit_document</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="bg-surface-container-low border-t border-outline-variant p-3 flex justify-between items-center text-on-surface-variant font-label-md text-label-md">
+<span class="">Showing 1 to 5 of 24 entries</span>
+<div class="flex gap-1">
+<button class="p-1 hover:bg-surface-container-high rounded disabled:opacity-50"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="w-7 h-7 flex items-center justify-center rounded bg-primary text-on-primary">1</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high">2</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high">3</button>
+<button class="p-1 hover:bg-surface-container-high rounded"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

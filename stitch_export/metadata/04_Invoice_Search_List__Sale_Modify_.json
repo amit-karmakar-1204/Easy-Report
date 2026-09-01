@@ -1,0 +1,28 @@
+{
+  "id": 1788252946456,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/4519f6712f6e4cac80930962760d35dc\",\"title\":\"Invoice Search List (Sale Modify)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/4236254835419992271\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1UnY5PTj1l3Jwh8Bz1RolYtywLz1z6pKSCGu21r8-YEl3uJLLwZ0cL4WsvIVA_KNKSjYaZofAwkF3fjG6kCMFxTTtY6Dgj59oWBKMMDgKt9-W5mHJbE0c63m2_KZpJUlfaZ0R37I3zuPJZI3amHsqFUyui6HmCULCCZjllGTNctNY9EL3syfg5D_9rNec6-L1wuPniv9YqV0-3KNl3YotyT7LgzCh_11VO1yDcfXgtT8-eMJO_NgKP8xA\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/14471133845625673342\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MjZiM2M1N2YwMzM4NTg1NjFmM2FlOWQwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MjZiM2M1N2YwMzM4NTg1NjFmM2FlOWQwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/files/14471133845625673342"
+      },
+      "name": "projects/7269570520349594329/screens/4519f6712f6e4cac80930962760d35dc",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1UnY5PTj1l3Jwh8Bz1RolYtywLz1z6pKSCGu21r8-YEl3uJLLwZ0cL4WsvIVA_KNKSjYaZofAwkF3fjG6kCMFxTTtY6Dgj59oWBKMMDgKt9-W5mHJbE0c63m2_KZpJUlfaZ0R37I3zuPJZI3amHsqFUyui6HmCULCCZjllGTNctNY9EL3syfg5D_9rNec6-L1wuPniv9YqV0-3KNl3YotyT7LgzCh_11VO1yDcfXgtT8-eMJO_NgKP8xA",
+        "name": "projects/7269570520349594329/files/4236254835419992271"
+      },
+      "title": "Invoice Search List (Sale Modify)",
+      "width": "2560"
+    }
+  }
+}

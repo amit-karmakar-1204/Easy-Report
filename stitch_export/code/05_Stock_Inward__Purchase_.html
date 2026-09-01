@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Stock Inward - EASY REPORT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#930013",
+                    "secondary": "#006c49",
+                    "error": "#ba1a1a",
+                    "secondary-container": "#6cf8bb",
+                    "primary-fixed-dim": "#c0c6db",
+                    "secondary-fixed-dim": "#4edea3",
+                    "tertiary-container": "#410004",
+                    "tertiary-fixed-dim": "#ffb3ad",
+                    "on-surface-variant": "#45464c",
+                    "on-secondary-fixed": "#002113",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-dim": "#d8dade",
+                    "tertiary-fixed": "#ffdad7",
+                    "inverse-on-surface": "#eff1f5",
+                    "on-primary-container": "#7d8497",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "outline": "#76777d",
+                    "on-tertiary-fixed": "#410004",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#00714d",
+                    "on-background": "#191c1f",
+                    "primary-fixed": "#dce2f7",
+                    "on-primary-fixed": "#141b2b",
+                    "surface-container-high": "#e6e8ec",
+                    "primary-container": "#141b2b",
+                    "inverse-surface": "#2d3134",
+                    "on-primary-fixed-variant": "#404758",
+                    "inverse-primary": "#c0c6db",
+                    "surface": "#f7f9fd",
+                    "on-error-container": "#93000a",
+                    "background": "#f7f9fd",
+                    "on-surface": "#191c1f",
+                    "surface-tint": "#575e70",
+                    "surface-container-highest": "#e0e2e6",
+                    "primary": "#000000",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#ef4444",
+                    "surface-container": "#eceef2",
+                    "outline-variant": "#c6c6cd",
+                    "tertiary": "#000000",
+                    "on-secondary-fixed-variant": "#005236",
+                    "surface-container-low": "#f2f4f8",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f7f9fd",
+                    "surface-variant": "#e0e2e6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "xs": "4px",
+                    "gutter": "16px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "container-margin": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "display": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "code": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-bold": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "code": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-background min-h-screen flex flex-col font-body-md text-body-md text-on-surface antialiased">
+<!-- TopNavBar: Shared Component -->
+<header class="bg-surface border-b border-outline-variant fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16 flat no shadows">
+<div class="font-display text-display text-primary tracking-tight">EASY REPORT</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:bg-surface-dim p-sm rounded-DEFAULT" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:bg-surface-dim p-sm rounded-DEFAULT" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-[88px] pb-container-margin px-container-margin max-w-[1440px] mx-auto w-full flex flex-col gap-lg flex-grow">
+<!-- Page Header (Task Focused) -->
+<div class="flex items-center gap-md">
+<button aria-label="Go back" class="h-10 w-10 flex items-center justify-center border border-outline-variant bg-surface hover:bg-surface-container-highest transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-on-surface" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">PURCHASE</h1>
+</div>
+<!-- Supplier & Invoice Info -->
+<section class="bg-surface border border-outline-variant p-lg flex flex-col gap-md">
+<h2 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant pb-sm">Supplier Details</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Supplier</label>
+<div class="relative">
+<select class="w-full border border-outline-variant bg-surface p-sm pl-md font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 appearance-none rounded-none cursor-pointer">
+<option disabled="" selected="" value="">Select Supplier</option>
+<option value="alpha">Alpha Pharma Distributors</option>
+<option value="medicorp">MediCorp Supplies Inc.</option>
+<option value="global">Global Health Logistics</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Supplier Invoice Number</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none placeholder:text-outline-variant" placeholder="e.g. INV-2023-0041" type="text">
+</div>
+</div>
+</section>
+<!-- Item Entry Row -->
+<section class="bg-surface border border-outline-variant p-lg flex flex-col gap-md">
+<h2 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant pb-sm">Add Item to Stock</h2>
+<div class="grid grid-cols-12 gap-gutter items-end">
+<div class="col-span-12 md:col-span-3 flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Item Name</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none placeholder:text-outline-variant" placeholder="Search inventory..." type="text">
+</div>
+<div class="col-span-6 md:col-span-2 flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Batch Number</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none placeholder:text-outline-variant" placeholder="Batch No." type="text">
+</div>
+<div class="col-span-6 md:col-span-2 flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Expiry Date</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none" type="month">
+</div>
+<div class="col-span-4 md:col-span-2 flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Purchase Rate</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none placeholder:text-outline-variant" placeholder="0.00" step="0.01" type="number">
+</div>
+<div class="col-span-4 md:col-span-1 flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">MRP</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none placeholder:text-outline-variant" placeholder="0.00" step="0.01" type="number">
+</div>
+<div class="col-span-4 md:col-span-1 flex flex-col gap-xs">
+<label class="font-label-bold text-label-bold text-on-surface-variant uppercase">Qty</label>
+<input class="w-full border border-outline-variant bg-surface p-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-colors h-10 rounded-none placeholder:text-outline-variant" placeholder="0" type="number">
+</div>
+<div class="col-span-12 md:col-span-1 flex justify-end">
+<button aria-label="Add Item" class="bg-surface-variant text-on-surface border border-outline-variant h-10 w-full flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-none">
+<span class="material-symbols-outlined text-on-surface" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Inventory Table -->
+<section class="bg-surface border border-outline-variant flex flex-col flex-grow">
+<div class="p-lg border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Staged Inventory</h3>
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface border border-outline-variant px-sm py-xs">2 Items Pending</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse whitespace-nowrap">
+<thead class="bg-surface font-label-bold text-label-bold text-on-surface-variant uppercase border-b border-outline-variant">
+<tr>
+<th class="p-md pl-lg font-normal w-1/4">Item Name</th>
+<th class="p-md font-normal">Batch No.</th>
+<th class="p-md font-normal">Expiry</th>
+<th class="p-md font-normal text-right">Purchase Rate</th>
+<th class="p-md font-normal text-right">MRP</th>
+<th class="p-md font-normal text-right">Qty</th>
+<th class="p-md font-normal text-right">Total</th>
+<th class="p-md pr-lg font-normal text-center w-16">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group"><td class="p-md pl-lg">Organic Whole Milk 1L</td><td class="p-md font-code text-code">BCH-8821-A</td><td class="p-md text-on-surface-variant">10/2023</td><td class="p-md text-right font-code text-code">45.00</td><td class="p-md text-right font-code text-code">60.00</td><td class="p-md text-right font-code text-code">100</td><td class="p-md text-right font-code text-code font-semibold">₹4,500.00</td><td class="p-md pr-lg text-center"><button aria-label="Remove item" class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"><span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span></button></td></tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group"><td class="p-md pl-lg">Artisan Bread Loaf - Sourdough</td><td class="p-md font-code text-code">BCH-9932-B</td><td class="p-md text-on-surface-variant">10/2023</td><td class="p-md text-right font-code text-code">35.00</td><td class="p-md text-right font-code text-code">50.00</td><td class="p-md text-right font-code text-code">50</td><td class="p-md text-right font-code text-code font-semibold">₹1,750.00</td><td class="p-md pr-lg text-center"><button aria-label="Remove item" class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"><span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span></button></td></tr>
+</tbody>
+</table>
+</div>
+<!-- Footer / Action Area -->
+<div class="p-lg bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md mt-auto">
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Invoice Total</span>
+<span class="font-display text-display text-primary tracking-tight">₹6,250.00</span>
+</div>
+<button class="bg-primary text-on-primary font-label-bold text-label-bold uppercase px-xl py-md hover:bg-surface-tint transition-colors tracking-widest w-full md:w-auto">
+                    Log Purchase
+                </button>
+</div>
+</section>
+</main>
+
+
+</body></html>

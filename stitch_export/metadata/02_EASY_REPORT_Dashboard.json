@@ -1,0 +1,28 @@
+{
+  "id": 1788252939757,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/ee9369eed8f84ec8a9cb8157bcb6d8e4\",\"title\":\"EASY REPORT Dashboard\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/13140639097166912152\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1V066KuacQ5cZXhHNz5JmL9UQUXRqAioSAZ2C_r9vATwlYWShfXABHR02FLz33eWUDH7_N8eNBMdnsHm_oK0pxTxSxgXX98FAXv13rUIqscr7DbRsUinXE3YbDqO5Zo-tCabszPmHK0s0x7qo0toxTivhaUgIcc_7O-D40rsFD8QaIwmnotRfSdlt9JyOqTRffx2rMlRl4t8Nq95p3wUXJGA7MEhYFf3_MErlXQKA8swzMKxIGCgYww2w\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/5821017087290467780\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI2ZmY1MjAwN2M0ZTJkYjY5MDlhNzA1EgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI2ZmY1MjAwN2M0ZTJkYjY5MDlhNzA1EgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/files/5821017087290467780"
+      },
+      "name": "projects/7269570520349594329/screens/ee9369eed8f84ec8a9cb8157bcb6d8e4",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1V066KuacQ5cZXhHNz5JmL9UQUXRqAioSAZ2C_r9vATwlYWShfXABHR02FLz33eWUDH7_N8eNBMdnsHm_oK0pxTxSxgXX98FAXv13rUIqscr7DbRsUinXE3YbDqO5Zo-tCabszPmHK0s0x7qo0toxTivhaUgIcc_7O-D40rsFD8QaIwmnotRfSdlt9JyOqTRffx2rMlRl4t8Nq95p3wUXJGA7MEhYFf3_MErlXQKA8swzMKxIGCgYww2w",
+        "name": "projects/7269570520349594329/files/13140639097166912152"
+      },
+      "title": "EASY REPORT Dashboard",
+      "width": "2560"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": 1788252954545,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"name\":\"projects/7269570520349594329/screens/5e8da6bb85544f1ebe023040f6f8d22c\",\"title\":\"Daily Financial Summary (Profit)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/3136647055749325449\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1VGlMVmqioKI-EuAOxN3MdLntEp9QBiKjDJM_T1hSPV8FAzgQMblVvYy-JF_nii6Eso4YkdxU_f_1v-8P9vF5CwpdV0H7o1S5VPYv_TlRD_XvNlxuiomgJsXQPB9pZ6-U3gIShzBmC9d4oQxiVB6dPXCgXbSUSnDO_EtV4Bv_5Q8SNXLrG8LX_UtxJUR9GxYk0qxLTU0_QFMstNiYZL_yg0bFFL8rL1OaISvHSIKsOTU1XwhvxtIyoQJyc\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/15658451443049156842\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGMzMWQyYzkwN2M0YzE1ZWNmMGFlYzMwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"3040\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "deviceType": "DESKTOP",
+      "height": "2048",
+      "htmlCode": {
+        "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGMzMWQyYzkwN2M0YzE1ZWNmMGFlYzMwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+        "mimeType": "text/html",
+        "name": "projects/7269570520349594329/files/15658451443049156842"
+      },
+      "name": "projects/7269570520349594329/screens/5e8da6bb85544f1ebe023040f6f8d22c",
+      "screenshot": {
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1VGlMVmqioKI-EuAOxN3MdLntEp9QBiKjDJM_T1hSPV8FAzgQMblVvYy-JF_nii6Eso4YkdxU_f_1v-8P9vF5CwpdV0H7o1S5VPYv_TlRD_XvNlxuiomgJsXQPB9pZ6-U3gIShzBmC9d4oQxiVB6dPXCgXbSUSnDO_EtV4Bv_5Q8SNXLrG8LX_UtxJUR9GxYk0qxLTU0_QFMstNiYZL_yg0bFFL8rL1OaISvHSIKsOTU1XwhvxtIyoQJyc",
+        "name": "projects/7269570520349594329/files/3136647055749325449"
+      },
+      "title": "Daily Financial Summary (Profit)",
+      "width": "3040"
+    }
+  }
+}

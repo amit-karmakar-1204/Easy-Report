@@ -1,0 +1,176 @@
+{
+  "id": 1788252935426,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"screens\":[{\"name\":\"projects/7269570520349594329/screens/4519f6712f6e4cac80930962760d35dc\",\"title\":\"Invoice Search List (Sale Modify)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/4236254835419992271\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1UnY5PTj1l3Jwh8Bz1RolYtywLz1z6pKSCGu21r8-YEl3uJLLwZ0cL4WsvIVA_KNKSjYaZofAwkF3fjG6kCMFxTTtY6Dgj59oWBKMMDgKt9-W5mHJbE0c63m2_KZpJUlfaZ0R37I3zuPJZI3amHsqFUyui6HmCULCCZjllGTNctNY9EL3syfg5D_9rNec6-L1wuPniv9YqV0-3KNl3YotyT7LgzCh_11VO1yDcfXgtT8-eMJO_NgKP8xA\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/14471133845625673342\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MjZiM2M1N2YwMzM4NTg1NjFmM2FlOWQwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/0f1da3d368c347099918add441661b44\",\"title\":\"Stock Inward (Purchase)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/2432083111279578516\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1Vm9r1U117HuT1nCX-c1qvAQ4aO5SCv3hUQDBP_tagGKwjXsSPLl6g3PNv_KA6YU2UdYhTRadWMej6o1gJnXNPOMaS-FrupAGhwmhYNuxrXIgVDXD_V6_o_ezSQUtbyGa1WFjSKLtoEmnurMpMC_uhmexJh2GWD_I3eEFTGo_Z2hXGpZifzB-fpCB7Kl57lAQU84n5cK1wOnqtq3DH4T-l_mNYtVfOwbno05n1wKKFjPVEEUmsEvWU8UAU\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/5767473885637532690\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MzI4MjMyNTcwNzNhZTBiM2ZmMTljNWEwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/66dff93bb2de43389c5278f64b812045\",\"title\":\"Performance Report (Stock/Sale Analysis)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/2696942317218388255\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1WY74v4_PnlPyyl57TezYbT6wV0Wngt7imfcErpDijimYMgS2hQgg2Vg7vLzcl5esMc3XGUoC-lFyHF5fQO82yoozso8xXCUH_4lco2iGfvghNX0B6BP034BcrFS4QnjgeCsk2N6UjcHqFstCJg3HpOvJ1Tt0JoX5OQqgO4K6b-Iq7hICbnuznSpd5_nPVsCESz2oi5tebMqxVSKexln56DTK6DOfQI3WxGanyRTwJr9U6DFhqCewTOS8s\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/11607586911373404560\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGMwNTlkM2IwMmE5YjNlY2RhMjc3ZTMzEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b\",\"title\":\"Live Inventory Grid (Stock Status)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/screenshot\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1XnVnDeEnjL-L-qTCfs0zb8zTbMxT9ugXwje5RQZo-LvdRln8JcLiBYqqkUPqxAXrIMBFURCl8DnB5hlZzUV9pc1tmFNUdmQLyKUtVmW7JMW29eS1-FUgi_D971EpAeIoYm3sCkbXKCuAF05IKjxwM1aDSRO_GRpoJCsL-IsxmTKlKWrFrCTl20P-cU_zBBLItXVyJyEZAjhZC0lFtSDxhdjpH5FTuzyB0q7cFoO2mPQK3WXnitnGChCp8\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/html\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY2Y2Y5MmRmZDgwMjJkNDUxZmYzMjk4M2FiEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/8e0dad0f9ed342b088194a0f0c654a80\",\"title\":\"Ledger Account Book (Party Khata)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/10912589622731531074\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1UnN3-tkwfQzBsb_Y9CAZr939Xhc2B6gFbU8Fz_Oxl8fATVXKP4cjxEAPZo3rWmna7iPlqhQdrdjevjxgIORIPhVoIX8IjHjHE6WmCmKXa3tZslJSvJyeGLXouqo3Sbd1ecLyfrWRYzPwyKYEIb-xa3OeEt8r4Y_hCCqMjDHQ82fp_2EN29XkVvTcSqtbDXNw2Cg-giCUxAqhioE6vdH5zbrpMUcZrnRFmI-7NDdGy9EK1_-vUg80uwgA\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/10786953396840302886\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI0ZGNkM2MwNjM5NDg5NzE0MDJjMTFkEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/ee9369eed8f84ec8a9cb8157bcb6d8e4\",\"title\":\"EASY REPORT Dashboard\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/13140639097166912152\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1V066KuacQ5cZXhHNz5JmL9UQUXRqAioSAZ2C_r9vATwlYWShfXABHR02FLz33eWUDH7_N8eNBMdnsHm_oK0pxTxSxgXX98FAXv13rUIqscr7DbRsUinXE3YbDqO5Zo-tCabszPmHK0s0x7qo0toxTivhaUgIcc_7O-D40rsFD8QaIwmnotRfSdlt9JyOqTRffx2rMlRl4t8Nq95p3wUXJGA7MEhYFf3_MErlXQKA8swzMKxIGCgYww2w\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/5821017087290467780\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI2ZmY1MjAwN2M0ZTJkYjY5MDlhNzA1EgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/d7a6a0744a8544a5bfefac4dda161300\",\"title\":\"Active Billing (Sale)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/15555379828385478690\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1XU3zH9-o81STSlfSglSJ0mLJMmoj4FYrkY36xFfQVRpFFrXQXqw5oJ9pg5ebtb8oN1K_fqiE0NjCO03qFqJDFDabKjDscXAXV9V_vGYcPFY_GMcGLHYaR20AVYDs6mNIbgOCepQo6mBqkTNyvnGX_ic8kIcEi3BIs3PfnNFBt-qWCDN0IA2-3As8M32YPzw69teLM6G2DZu31NXmPXeMkUQXCZ31RaZzZnvrXYCJNmzvislHUreeZccGc\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/17962326175109530976\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MTgxNmNlOWEwOTI1ZDRlZDU3MTU2Y2YzEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"3040\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/35be5b3e851c46db878ec045ce8e5d1e\",\"title\":\"Expiry Action Board (Expired Items)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/10362980805993776278\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1WMk9k0M-uQzQAkXIKaNoW5sxAvDGtJyiV8-vMMqmGKFUx_NMobLUYeXGHP-wIBoGrbcPxIdPqi8FZnYZY_iMDTr3IbceKUxmw7il5tuKOhZEyslApD9kn0XcYC_yGB1v30ttrS5r0owvv375B0OsePsXcKzuTV6zzrTTs65-bJBxPVK366rdV4JPiIwSvU5A5LKegsoDOE2AcQ-n7WEgjHWoZbCiiZEyEizXjYTKSRtkwiWadXyrjdm1o\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/5923796896986397672\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGIyNzZiOTQwMWI0ZTQwMTNmMjBmMzFmEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/923f33438b424d2bbb83d989cc46df6d\",\"title\":\"Purchase History List (Purchase Modify)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/3084293143248271432\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1WDCFRzhxtSDtjeETVKVN-Jhu95ximGVm7ODNTYXY8w5iifwMilXABgShErqxvRBKhAWN9E_ixAaOMSn4I4QCLdN5rC7wiSZ7uW5QKppClwW7N_ESxFdIFO84aSZijonPRTV5MjIrYCshyDMSUxhC8w1XA_EColw2x2NSAW_5H_slxMORErJ08UqIOB5c89-TPmA-XhgJiKdoHr3YwaCw4_TeRGNcOGPKUZtTRRIkZc8Jl3QlOvUZb1NQA\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/11534549475942060512\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI1YzRlNTgwOTEwNzZmOTU3MDRhN2RjEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"2560\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"},{\"name\":\"projects/7269570520349594329/screens/5e8da6bb85544f1ebe023040f6f8d22c\",\"title\":\"Daily Financial Summary (Profit)\",\"screenshot\":{\"name\":\"projects/7269570520349594329/files/3136647055749325449\",\"downloadUrl\":\"https://lh3.googleusercontent.com/aida/AEtjO1VGlMVmqioKI-EuAOxN3MdLntEp9QBiKjDJM_T1hSPV8FAzgQMblVvYy-JF_nii6Eso4YkdxU_f_1v-8P9vF5CwpdV0H7o1S5VPYv_TlRD_XvNlxuiomgJsXQPB9pZ6-U3gIShzBmC9d4oQxiVB6dPXCgXbSUSnDO_EtV4Bv_5Q8SNXLrG8LX_UtxJUR9GxYk0qxLTU0_QFMstNiYZL_yg0bFFL8rL1OaISvHSIKsOTU1XwhvxtIyoQJyc\"},\"htmlCode\":{\"name\":\"projects/7269570520349594329/files/15658451443049156842\",\"downloadUrl\":\"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGMzMWQyYzkwN2M0YzE1ZWNmMGFlYzMwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086\",\"mimeType\":\"text/html\"},\"width\":\"3040\",\"height\":\"2048\",\"deviceType\":\"DESKTOP\"}]}",
+        "type": "text"
+      }
+    ],
+    "structuredContent": {
+      "screens": [
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MjZiM2M1N2YwMzM4NTg1NjFmM2FlOWQwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/14471133845625673342"
+          },
+          "name": "projects/7269570520349594329/screens/4519f6712f6e4cac80930962760d35dc",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1UnY5PTj1l3Jwh8Bz1RolYtywLz1z6pKSCGu21r8-YEl3uJLLwZ0cL4WsvIVA_KNKSjYaZofAwkF3fjG6kCMFxTTtY6Dgj59oWBKMMDgKt9-W5mHJbE0c63m2_KZpJUlfaZ0R37I3zuPJZI3amHsqFUyui6HmCULCCZjllGTNctNY9EL3syfg5D_9rNec6-L1wuPniv9YqV0-3KNl3YotyT7LgzCh_11VO1yDcfXgtT8-eMJO_NgKP8xA",
+            "name": "projects/7269570520349594329/files/4236254835419992271"
+          },
+          "title": "Invoice Search List (Sale Modify)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MzI4MjMyNTcwNzNhZTBiM2ZmMTljNWEwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/5767473885637532690"
+          },
+          "name": "projects/7269570520349594329/screens/0f1da3d368c347099918add441661b44",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1Vm9r1U117HuT1nCX-c1qvAQ4aO5SCv3hUQDBP_tagGKwjXsSPLl6g3PNv_KA6YU2UdYhTRadWMej6o1gJnXNPOMaS-FrupAGhwmhYNuxrXIgVDXD_V6_o_ezSQUtbyGa1WFjSKLtoEmnurMpMC_uhmexJh2GWD_I3eEFTGo_Z2hXGpZifzB-fpCB7Kl57lAQU84n5cK1wOnqtq3DH4T-l_mNYtVfOwbno05n1wKKFjPVEEUmsEvWU8UAU",
+            "name": "projects/7269570520349594329/files/2432083111279578516"
+          },
+          "title": "Stock Inward (Purchase)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGMwNTlkM2IwMmE5YjNlY2RhMjc3ZTMzEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/11607586911373404560"
+          },
+          "name": "projects/7269570520349594329/screens/66dff93bb2de43389c5278f64b812045",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1WY74v4_PnlPyyl57TezYbT6wV0Wngt7imfcErpDijimYMgS2hQgg2Vg7vLzcl5esMc3XGUoC-lFyHF5fQO82yoozso8xXCUH_4lco2iGfvghNX0B6BP034BcrFS4QnjgeCsk2N6UjcHqFstCJg3HpOvJ1Tt0JoX5OQqgO4K6b-Iq7hICbnuznSpd5_nPVsCESz2oi5tebMqxVSKexln56DTK6DOfQI3WxGanyRTwJr9U6DFhqCewTOS8s",
+            "name": "projects/7269570520349594329/files/2696942317218388255"
+          },
+          "title": "Performance Report (Stock/Sale Analysis)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY2Y2Y5MmRmZDgwMjJkNDUxZmYzMjk4M2FiEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/html"
+          },
+          "name": "projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1XnVnDeEnjL-L-qTCfs0zb8zTbMxT9ugXwje5RQZo-LvdRln8JcLiBYqqkUPqxAXrIMBFURCl8DnB5hlZzUV9pc1tmFNUdmQLyKUtVmW7JMW29eS1-FUgi_D971EpAeIoYm3sCkbXKCuAF05IKjxwM1aDSRO_GRpoJCsL-IsxmTKlKWrFrCTl20P-cU_zBBLItXVyJyEZAjhZC0lFtSDxhdjpH5FTuzyB0q7cFoO2mPQK3WXnitnGChCp8",
+            "name": "projects/7269570520349594329/screens/85527509d1d44bf28a0213177841471b/fileEntries/screenshot"
+          },
+          "title": "Live Inventory Grid (Stock Status)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI0ZGNkM2MwNjM5NDg5NzE0MDJjMTFkEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/10786953396840302886"
+          },
+          "name": "projects/7269570520349594329/screens/8e0dad0f9ed342b088194a0f0c654a80",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1UnN3-tkwfQzBsb_Y9CAZr939Xhc2B6gFbU8Fz_Oxl8fATVXKP4cjxEAPZo3rWmna7iPlqhQdrdjevjxgIORIPhVoIX8IjHjHE6WmCmKXa3tZslJSvJyeGLXouqo3Sbd1ecLyfrWRYzPwyKYEIb-xa3OeEt8r4Y_hCCqMjDHQ82fp_2EN29XkVvTcSqtbDXNw2Cg-giCUxAqhioE6vdH5zbrpMUcZrnRFmI-7NDdGy9EK1_-vUg80uwgA",
+            "name": "projects/7269570520349594329/files/10912589622731531074"
+          },
+          "title": "Ledger Account Book (Party Khata)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI2ZmY1MjAwN2M0ZTJkYjY5MDlhNzA1EgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/5821017087290467780"
+          },
+          "name": "projects/7269570520349594329/screens/ee9369eed8f84ec8a9cb8157bcb6d8e4",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1V066KuacQ5cZXhHNz5JmL9UQUXRqAioSAZ2C_r9vATwlYWShfXABHR02FLz33eWUDH7_N8eNBMdnsHm_oK0pxTxSxgXX98FAXv13rUIqscr7DbRsUinXE3YbDqO5Zo-tCabszPmHK0s0x7qo0toxTivhaUgIcc_7O-D40rsFD8QaIwmnotRfSdlt9JyOqTRffx2rMlRl4t8Nq95p3wUXJGA7MEhYFf3_MErlXQKA8swzMKxIGCgYww2w",
+            "name": "projects/7269570520349594329/files/13140639097166912152"
+          },
+          "title": "EASY REPORT Dashboard",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MTgxNmNlOWEwOTI1ZDRlZDU3MTU2Y2YzEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/17962326175109530976"
+          },
+          "name": "projects/7269570520349594329/screens/d7a6a0744a8544a5bfefac4dda161300",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1XU3zH9-o81STSlfSglSJ0mLJMmoj4FYrkY36xFfQVRpFFrXQXqw5oJ9pg5ebtb8oN1K_fqiE0NjCO03qFqJDFDabKjDscXAXV9V_vGYcPFY_GMcGLHYaR20AVYDs6mNIbgOCepQo6mBqkTNyvnGX_ic8kIcEi3BIs3PfnNFBt-qWCDN0IA2-3As8M32YPzw69teLM6G2DZu31NXmPXeMkUQXCZ31RaZzZnvrXYCJNmzvislHUreeZccGc",
+            "name": "projects/7269570520349594329/files/15555379828385478690"
+          },
+          "title": "Active Billing (Sale)",
+          "width": "3040"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGIyNzZiOTQwMWI0ZTQwMTNmMjBmMzFmEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/5923796896986397672"
+          },
+          "name": "projects/7269570520349594329/screens/35be5b3e851c46db878ec045ce8e5d1e",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1WMk9k0M-uQzQAkXIKaNoW5sxAvDGtJyiV8-vMMqmGKFUx_NMobLUYeXGHP-wIBoGrbcPxIdPqi8FZnYZY_iMDTr3IbceKUxmw7il5tuKOhZEyslApD9kn0XcYC_yGB1v30ttrS5r0owvv375B0OsePsXcKzuTV6zzrTTs65-bJBxPVK366rdV4JPiIwSvU5A5LKegsoDOE2AcQ-n7WEgjHWoZbCiiZEyEizXjYTKSRtkwiWadXyrjdm1o",
+            "name": "projects/7269570520349594329/files/10362980805993776278"
+          },
+          "title": "Expiry Action Board (Expired Items)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGI1YzRlNTgwOTEwNzZmOTU3MDRhN2RjEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/11534549475942060512"
+          },
+          "name": "projects/7269570520349594329/screens/923f33438b424d2bbb83d989cc46df6d",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1WDCFRzhxtSDtjeETVKVN-Jhu95ximGVm7ODNTYXY8w5iifwMilXABgShErqxvRBKhAWN9E_ixAaOMSn4I4QCLdN5rC7wiSZ7uW5QKppClwW7N_ESxFdIFO84aSZijonPRTV5MjIrYCshyDMSUxhC8w1XA_EColw2x2NSAW_5H_slxMORErJ08UqIOB5c89-TPmA-XhgJiKdoHr3YwaCw4_TeRGNcOGPKUZtTRRIkZc8Jl3QlOvUZb1NQA",
+            "name": "projects/7269570520349594329/files/3084293143248271432"
+          },
+          "title": "Purchase History List (Purchase Modify)",
+          "width": "2560"
+        },
+        {
+          "deviceType": "DESKTOP",
+          "height": "2048",
+          "htmlCode": {
+            "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1YTY3MGMzMWQyYzkwN2M0YzE1ZWNmMGFlYzMwEgsSBxCQu5a3vgQYAZIBIwoKcHJvamVjdF9pZBIVQhM3MjY5NTcwNTIwMzQ5NTk0MzI5&filename=&opi=89354086",
+            "mimeType": "text/html",
+            "name": "projects/7269570520349594329/files/15658451443049156842"
+          },
+          "name": "projects/7269570520349594329/screens/5e8da6bb85544f1ebe023040f6f8d22c",
+          "screenshot": {
+            "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1VGlMVmqioKI-EuAOxN3MdLntEp9QBiKjDJM_T1hSPV8FAzgQMblVvYy-JF_nii6Eso4YkdxU_f_1v-8P9vF5CwpdV0H7o1S5VPYv_TlRD_XvNlxuiomgJsXQPB9pZ6-U3gIShzBmC9d4oQxiVB6dPXCgXbSUSnDO_EtV4Bv_5Q8SNXLrG8LX_UtxJUR9GxYk0qxLTU0_QFMstNiYZL_yg0bFFL8rL1OaISvHSIKsOTU1XwhvxtIyoQJyc",
+            "name": "projects/7269570520349594329/files/3136647055749325449"
+          },
+          "title": "Daily Financial Summary (Profit)",
+          "width": "3040"
+        }
+      ]
+    }
+  }
+}
