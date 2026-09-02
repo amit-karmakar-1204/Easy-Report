@@ -297,6 +297,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
               : updated[existingIdx].expiryDate,
             purchaseRate: pi.purchaseRate || updated[existingIdx].purchaseRate,
             mrp: pi.mrp || updated[existingIdx].mrp,
+            packing: pi.packing || updated[existingIdx].packing,
+            company: pi.company || updated[existingIdx].company,
+            supplierName:
+              purchaseData.supplierName || updated[existingIdx].supplierName,
             status: "OPTIMAL",
           };
           updated[existingIdx] = updatedItem;
@@ -311,12 +315,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             category: "fin",
             rackLocation: "Z-A / R-01 / S-01",
             batchNo: pi.batchNo || "BCH-NEW",
-            expiryDate: pi.expiryDate ? `${pi.expiryDate}-01` : "2025-12-31",
+            expiryDate: pi.expiryDate ? `${pi.expiryDate}-01` : "2028-12-31",
             currentStock: pi.qty,
             unit: "Pcs",
             purchaseRate: pi.purchaseRate,
             salePrice: pi.mrp * 0.85,
             mrp: pi.mrp,
+            packing: pi.packing,
+            company: pi.company,
+            supplierName: purchaseData.supplierName,
             status: "OPTIMAL",
           };
           updated.push(newItem);
@@ -327,6 +334,52 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       });
       return updated;
     });
+
+    // Link purchase directly to Supplier / Party Account Ledger
+    if (purchaseData.supplierName?.trim()) {
+      const supKey = purchaseData.supplierName.toLowerCase().trim();
+      setParties((prev) => {
+        const found = prev.find((p) => p.name.toLowerCase().trim() === supKey);
+        const tx: LedgerTransaction = {
+          id: `tx-pur-${Date.now()}`,
+          date: purchaseData.date,
+          description: `Bill #${purchaseData.purchaseId} - ${purchaseData.items.length} item(s) inwarded`,
+          debit: purchaseData.totalCost,
+          credit: 0,
+          balance:
+            (found ? found.outstandingBalance : 0) + purchaseData.totalCost,
+          referenceNo: purchaseData.purchaseId,
+        };
+
+        if (found) {
+          const updatedParty: PartyAccount = {
+            ...found,
+            outstandingBalance:
+              found.outstandingBalance + purchaseData.totalCost,
+            asOfDate: purchaseData.date,
+            transactions: [...found.transactions, tx],
+          };
+          if (isConfigured) {
+            updatePartyDoc(found.id, updatedParty);
+          }
+          return prev.map((p) => (p.id === found.id ? updatedParty : p));
+        } else {
+          const newParty: PartyAccount = {
+            id: `party-${Date.now()}`,
+            name: purchaseData.supplierName.trim(),
+            distributorId: `SUP-${Math.floor(1000 + Math.random() * 9000)}`,
+            partyType: "vendor",
+            outstandingBalance: purchaseData.totalCost,
+            asOfDate: purchaseData.date,
+            transactions: [tx],
+          };
+          if (isConfigured) {
+            createPartyDoc(newParty);
+          }
+          return [...prev, newParty];
+        }
+      });
+    }
 
     if (isConfigured) {
       createPurchaseDoc(newPurchase).catch((err) =>

@@ -8,6 +8,9 @@ import {
   History,
   PackagePlus,
   Plus,
+  Printer,
+  Receipt,
+  RotateCcw,
   Tag,
   Trash2,
   Truck,
@@ -19,7 +22,12 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
-import type { InventoryItem, PartyAccount, PurchaseItem } from "@/lib/types";
+import type {
+  InventoryItem,
+  PartyAccount,
+  Purchase,
+  PurchaseItem,
+} from "@/lib/types";
 
 export default function StockInwardPage() {
   const router = useRouter();
@@ -70,6 +78,12 @@ export default function StockInwardPage() {
   const [newItemCompany, setNewItemCompany] = useState("");
   const [newItemRate, setNewItemRate] = useState("");
   const [newItemMrp, setNewItemMrp] = useState("");
+
+  // Purchase Voucher Confirmation Modal State
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [lastLoggedPurchase, setLastLoggedPurchase] = useState<Purchase | null>(
+    null,
+  );
 
   // Dynamic list of unique saved suppliers (from parties and previous purchases)
   const supplierSuggestions = useMemo(() => {
@@ -168,22 +182,40 @@ export default function StockInwardPage() {
     return Array.from(map.values());
   }, [inventory, purchases]);
 
+  // Matched details of currently selected supplier
+  const selectedSupplierDetails = useMemo(() => {
+    if (!supplierName.trim()) return null;
+    return (
+      parties.find(
+        (p) =>
+          p.name.toLowerCase().trim() === supplierName.toLowerCase().trim(),
+      ) || null
+    );
+  }, [supplierName, parties]);
+
   // Modal keyboard listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setShowAddSupplierModal(false);
         setShowAddItemModal(false);
+        setShowVoucherModal(false);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+        if (showVoucherModal) {
+          e.preventDefault();
+          window.print();
+        }
       }
     };
 
-    if (showAddSupplierModal || showAddItemModal) {
+    if (showAddSupplierModal || showAddItemModal || showVoucherModal) {
       document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showAddSupplierModal, showAddItemModal]);
+  }, [showAddSupplierModal, showAddItemModal, showVoucherModal]);
 
   // Open Supplier Modal
   const handleOpenAddSupplierModal = () => {
@@ -244,7 +276,6 @@ export default function StockInwardPage() {
     const rateNum = parseFloat(newItemRate) || 0;
     const mrpNum = parseFloat(newItemMrp) || (rateNum > 0 ? rateNum * 1.25 : 0);
 
-    // Add to inventory database
     addInventoryItem({
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       name: trimmedItemName,
@@ -259,10 +290,10 @@ export default function StockInwardPage() {
       mrp: mrpNum,
       packing: newItemPacking.trim(),
       company: newItemCompany.trim(),
+      supplierName: supplierName.trim(),
       status: "OPTIMAL",
     });
 
-    // Auto-populate active inward row
     setItemName(trimmedItemName);
     if (rateNum > 0) setPurchaseRate(rateNum.toString());
     if (mrpNum > 0) setMrp(mrpNum.toString());
@@ -280,7 +311,6 @@ export default function StockInwardPage() {
     const trimmed = val.toLowerCase().trim();
     if (!trimmed) return;
 
-    // Search in catalog suggestions (inventory & previous purchases)
     const found = catalogSuggestions.find(
       (item) =>
         item.name.toLowerCase().trim() === trimmed ||
@@ -309,7 +339,6 @@ export default function StockInwardPage() {
     const trimmedBatch = val.toLowerCase().trim();
     if (!trimmedBatch) return;
 
-    // Look for matching batch in inventory or purchases
     const matchInventory = inventory.find(
       (inv) => inv.batchNo && inv.batchNo.toLowerCase().trim() === trimmedBatch,
     );
@@ -358,7 +387,6 @@ export default function StockInwardPage() {
     const qtyNum = qty > 0 ? qty : 1;
     const total = qtyNum * rateNum;
 
-    // Check if catalog has packing/company
     const catalogMatch = catalogSuggestions.find(
       (it) => it.name.toLowerCase().trim() === itemName.toLowerCase().trim(),
     );
@@ -390,27 +418,41 @@ export default function StockInwardPage() {
   };
 
   const invoiceTotal = stagedItems.reduce((acc, item) => acc + item.total, 0);
+  const totalStockQty = stagedItems.reduce((acc, item) => acc + item.qty, 0);
 
+  // Log Purchase & Synchronize Store Conclusion
   const handleLogPurchase = () => {
-    if (stagedItems.length === 0) {
-      alert("Cannot log purchase with 0 staged items.");
+    if (!supplierName.trim()) {
+      alert("Please select or enter a Supplier Name / Vendor first.");
       return;
     }
 
-    addPurchase({
+    if (stagedItems.length === 0) {
+      alert(
+        "Cannot log purchase with 0 staged items. Please add at least one inward item.",
+      );
+      return;
+    }
+
+    const saved = addPurchase({
       purchaseId: invoiceNumber,
       date: inwardDate,
-      supplierName: supplierName.trim() || "General Supplier",
+      supplierName: supplierName.trim(),
       items: stagedItems,
       totalCost: invoiceTotal,
       status: "Completed",
     });
 
+    setLastLoggedPurchase(saved);
+    setShowVoucherModal(true);
     setShowSuccessToast(true);
+
+    // Reset inward form for next transaction
+    setStagedItems([]);
+    setInvoiceNumber(`PUR-2026-${Math.floor(1000 + Math.random() * 9000)}`);
     setTimeout(() => {
       setShowSuccessToast(false);
-      router.push("/purchase-modify");
-    }, 1500);
+    }, 4000);
   };
 
   return (
@@ -452,6 +494,53 @@ export default function StockInwardPage() {
         </div>
       )}
 
+      {/* Live Purchase Conclusion & Connection Bar */}
+      <div className="bg-primary/5 border border-primary/20 rounded-sm p-3.5 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 font-bold text-primary text-sm">
+            <FileCheck className="w-4 h-4 text-primary" />
+            <span>Store Inward Conclusion & Bill Connection</span>
+          </div>
+          <p className="text-on-surface-variant text-xs">
+            From store / vendor:{" "}
+            <strong className="text-primary font-semibold">
+              {supplierName.trim() || "— (Select Supplier)"}
+            </strong>
+            {selectedSupplierDetails?.phone &&
+              ` [📞 ${selectedSupplierDetails.phone}]`}
+            {selectedSupplierDetails?.gstin &&
+              ` [GST: ${selectedSupplierDetails.gstin}]`}{" "}
+            on{" "}
+            <strong className="text-on-surface font-semibold">
+              {inwardDate}
+            </strong>{" "}
+            (Bill Ref:{" "}
+            <span className="font-code text-primary font-bold">
+              {invoiceNumber}
+            </span>
+            ).
+          </p>
+        </div>
+        <div className="flex items-center gap-4 text-right shrink-0">
+          <div className="border-r border-outline-variant pr-4">
+            <div className="text-[10px] uppercase font-bold text-on-surface-variant">
+              Staged Items / Qty
+            </div>
+            <div className="font-code font-bold text-on-surface">
+              {stagedItems.length} items ({totalStockQty} units)
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase font-bold text-primary">
+              Inward Bill Total
+            </div>
+            <div className="font-code font-bold text-primary text-base">
+              {formatINR(invoiceTotal)}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Supplier & Header Information */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -459,7 +548,7 @@ export default function StockInwardPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
-                Supplier Name / Vendor
+                Supplier Name / Vendor <span className="text-error">*</span>
               </label>
               <button
                 type="button"
@@ -476,7 +565,8 @@ export default function StockInwardPage() {
                 value={supplierName}
                 onChange={(e) => setSupplierName(e.target.value)}
                 placeholder="Search or enter supplier name..."
-                className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+                required
+                className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors font-medium"
               />
             </div>
             <datalist id="supplierSuggestionsDatalist">
@@ -527,7 +617,7 @@ export default function StockInwardPage() {
             Add Inward Item Entry
           </div>
           <span className="text-[11px] text-on-surface-variant">
-            ⚡ Typing item name or batch number auto-fills Rate & MRP
+            ⚡ Selecting product or typing batch code auto-fills Rate & MRP
           </span>
         </div>
 
@@ -656,9 +746,16 @@ export default function StockInwardPage() {
       {/* Staged Inventory Table */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm flex flex-col min-h-[300px] overflow-hidden shadow-none">
         <div className="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
-          <h3 className="font-bold text-xs text-on-surface uppercase tracking-wider">
-            Staged Inventory
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-xs text-on-surface uppercase tracking-wider">
+              Staged Inward Items
+            </h3>
+            {supplierName.trim() && (
+              <span className="text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-xs border border-primary/20">
+                Supplier: {supplierName.trim()}
+              </span>
+            )}
+          </div>
           <span className="text-[11px] font-semibold text-on-surface-variant bg-surface border border-outline-variant px-2 py-0.5 rounded-xs">
             {stagedItems.length} Items Pending Log
           </span>
@@ -688,7 +785,8 @@ export default function StockInwardPage() {
                     <FileCheck className="w-8 h-8 mx-auto mb-2 text-outline" />
                     <p className="font-semibold">No staged items yet</p>
                     <p className="text-[11px] mt-0.5">
-                      Use the item entry row above to stage stock
+                      Enter product details above to stage stock under{" "}
+                      {supplierName.trim() || "supplier"}
                     </p>
                   </td>
                 </tr>
@@ -746,7 +844,7 @@ export default function StockInwardPage() {
         <div className="p-4 bg-surface-container-low border-t border-outline-variant flex flex-col sm:flex-row justify-between items-center gap-3 mt-auto">
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-              Invoice Total
+              Total Inward Bill from {supplierName.trim() || "Supplier"}
             </span>
             <span className="text-2xl font-bold text-primary tracking-tight font-code">
               {formatINR(invoiceTotal)}
@@ -754,9 +852,9 @@ export default function StockInwardPage() {
           </div>
           <button
             onClick={handleLogPurchase}
-            className="w-full sm:w-auto bg-primary text-on-primary font-bold text-xs uppercase px-8 py-3 rounded-sm hover:opacity-90 transition-opacity tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto bg-primary text-on-primary font-bold text-xs uppercase px-8 py-3 rounded-sm hover:opacity-90 transition-opacity tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm"
           >
-            <Truck className="w-4 h-4" /> Log Purchase & Update Stock
+            <Truck className="w-4 h-4" /> Log Purchase & Synchronize Stock
           </button>
         </div>
       </div>
@@ -929,7 +1027,6 @@ export default function StockInwardPage() {
               onSubmit={handleSaveItem}
               className="p-5 space-y-4 overflow-y-auto"
             >
-              {/* 1. Item Name */}
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   1. Item Name <span className="text-error">*</span>
@@ -944,7 +1041,6 @@ export default function StockInwardPage() {
                 />
               </div>
 
-              {/* 2. Packing & 3. Company */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
@@ -973,7 +1069,6 @@ export default function StockInwardPage() {
                 </div>
               </div>
 
-              {/* 4. Rate & 5. MRP */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
@@ -1004,7 +1099,6 @@ export default function StockInwardPage() {
                 </div>
               </div>
 
-              {/* Modal Actions */}
               <div className="pt-3 border-t border-outline-variant flex justify-end items-center gap-2">
                 <button
                   type="button"
@@ -1025,6 +1119,171 @@ export default function StockInwardPage() {
         </div>
       )}
 
+      {/* 3. Purchase Inward Voucher Confirmation Modal */}
+      {showVoucherModal && lastLoggedPurchase && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="voucher-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowVoucherModal(false);
+            }
+          }}
+          className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "600px" }}
+            className="bg-surface-container-lowest border border-outline-variant rounded-md w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-outline-variant px-5 py-3.5 bg-surface-container-low shrink-0">
+              <div className="flex items-center gap-2.5 text-secondary">
+                <CheckCircle2 className="w-5 h-5 text-secondary shrink-0" />
+                <div>
+                  <h3
+                    id="voucher-title"
+                    className="font-bold text-sm text-primary"
+                  >
+                    Purchase Inward Logged & Stock Synchronized
+                  </h3>
+                  <p className="text-[11px] text-on-surface-variant font-code">
+                    {lastLoggedPurchase.purchaseId} • {lastLoggedPurchase.date}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVoucherModal(false)}
+                className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-1.5 rounded-sm transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Printable Inward Voucher Preview */}
+            <div className="p-5 overflow-y-auto flex-1 text-xs space-y-4">
+              <div className="border border-outline-variant rounded-sm p-4 bg-surface-container-low text-xs space-y-3 font-code shadow-xs">
+                {/* Store Header */}
+                <div className="text-center border-b border-outline-variant pb-2.5">
+                  <div className="font-bold text-sm text-primary tracking-wide">
+                    EASY REPORT ERP - STOCK INWARD VOUCHER
+                  </div>
+                  <div className="text-[10px] text-on-surface-variant">
+                    Warehouse Alpha Central Inventory Log
+                  </div>
+                </div>
+
+                {/* Supplier & Bill Conclusion */}
+                <div className="bg-surface-container p-2.5 rounded-sm border border-outline-variant/60 space-y-1">
+                  <div className="flex justify-between font-sans">
+                    <span className="text-on-surface-variant text-[11px]">
+                      Vendor / Supplier:
+                    </span>
+                    <span className="font-bold text-on-surface text-xs">
+                      {lastLoggedPurchase.supplierName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-sans">
+                    <span className="text-on-surface-variant text-[11px]">
+                      Invoice / Bill Ref:
+                    </span>
+                    <span className="font-bold text-primary font-code">
+                      {lastLoggedPurchase.purchaseId}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-sans">
+                    <span className="text-on-surface-variant text-[11px]">
+                      Inward Date:
+                    </span>
+                    <span className="font-medium text-on-surface">
+                      {lastLoggedPurchase.date}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-sans">
+                    <span className="text-on-surface-variant text-[11px]">
+                      Status:
+                    </span>
+                    <span className="font-bold text-secondary uppercase text-[10px]">
+                      {lastLoggedPurchase.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Items Breakdown Table */}
+                <div className="border-t border-b border-outline-variant py-2">
+                  <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">
+                    Purchased Item Breakdown
+                  </div>
+                  <div className="space-y-1.5">
+                    {lastLoggedPurchase.items.map((it, idx) => (
+                      <div
+                        key={it.id || idx}
+                        className="flex justify-between items-start py-1 border-b border-outline-variant/40 last:border-0 text-[11px]"
+                      >
+                        <div className="truncate pr-2 font-sans">
+                          <span className="font-semibold text-on-surface">
+                            {it.itemName}
+                          </span>
+                          <span className="block text-[10px] text-on-surface-variant font-code">
+                            Batch: {it.batchNo} | Exp: {it.expiryDate} | MRP: ₹
+                            {it.mrp.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="text-right shrink-0 font-code">
+                          <div>
+                            {it.qty} x ₹{it.purchaseRate.toFixed(2)}
+                          </div>
+                          <div className="font-bold text-primary">
+                            ₹{it.total.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Voucher Total */}
+                <div className="flex justify-between items-center pt-2 font-bold text-sm text-primary">
+                  <span>Total Purchase Cost:</span>
+                  <span className="text-base font-code">
+                    {formatINR(lastLoggedPurchase.totalCost)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="border-t border-outline-variant bg-surface-container-low px-5 py-3 flex flex-wrap justify-between items-center gap-2 shrink-0">
+              <Link
+                href="/purchase-modify"
+                className="px-3 py-1.5 border border-outline-variant rounded-sm text-xs font-semibold hover:bg-surface-container transition-colors"
+              >
+                View in History
+              </Link>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowVoucherModal(false)}
+                  className="px-4 py-1.5 border border-outline-variant rounded-sm text-xs font-semibold hover:bg-surface-container transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-1.5 bg-primary text-on-primary rounded-sm text-xs font-bold hover:opacity-90 flex items-center gap-1.5 transition-opacity cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" /> Print Voucher
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Notification */}
       {showSuccessToast && (
         <div className="fixed bottom-6 right-6 bg-primary text-on-primary px-4 py-3 rounded-sm shadow-xl flex items-center gap-3 z-50 animate-in fade-in slide-in-from-bottom-4">
@@ -1032,7 +1291,7 @@ export default function StockInwardPage() {
           <div className="text-xs">
             <p className="font-bold">Purchase Logged Successfully!</p>
             <p className="opacity-80">
-              Stock quantities and batch compliance updated.
+              Linked to supplier account and warehouse stock updated.
             </p>
           </div>
         </div>

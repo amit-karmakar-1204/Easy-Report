@@ -65,6 +65,7 @@ export interface InventoryItem {
   mrp: number;
   packing?: string;
   company?: string;
+  supplierName?: string;
   status: "OPTIMAL" | "LOW" | "CRITICAL" | "EXPIRED";
 }
 
