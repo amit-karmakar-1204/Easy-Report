@@ -35,6 +35,8 @@ export interface PurchaseItem {
   mrp: number;
   qty: number;
   total: number;
+  packing?: string;
+  company?: string;
 }
 
 export interface Purchase {
@@ -61,6 +63,8 @@ export interface InventoryItem {
   purchaseRate: number;
   salePrice: number;
   mrp: number;
+  packing?: string;
+  company?: string;
   status: "OPTIMAL" | "LOW" | "CRITICAL" | "EXPIRED";
 }
 

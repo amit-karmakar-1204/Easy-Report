@@ -6,7 +6,9 @@ import {
   CheckCircle2,
   FileCheck,
   History,
+  PackagePlus,
   Plus,
+  Tag,
   Trash2,
   Truck,
   UserPlus,
@@ -17,11 +19,18 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
-import type { PartyAccount, PurchaseItem } from "@/lib/types";
+import type { InventoryItem, PartyAccount, PurchaseItem } from "@/lib/types";
 
 export default function StockInwardPage() {
   const router = useRouter();
-  const { addPurchase, inventory, parties, addParty, purchases } = useERP();
+  const {
+    addPurchase,
+    inventory,
+    parties,
+    addParty,
+    purchases,
+    addInventoryItem,
+  } = useERP();
 
   // Header form
   const [supplierName, setSupplierName] = useState("");
@@ -44,7 +53,7 @@ export default function StockInwardPage() {
   const [stagedItems, setStagedItems] = useState<PurchaseItem[]>([]);
 
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [supplierSaveMsg, setSupplierSaveMsg] = useState<string | null>(null);
+  const [bannerFeedback, setBannerFeedback] = useState<string | null>(null);
 
   // Add Supplier Modal State
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
@@ -53,6 +62,14 @@ export default function StockInwardPage() {
   const [newSupplierPhone, setNewSupplierPhone] = useState("");
   const [newSupplierLicense, setNewSupplierLicense] = useState("");
   const [newSupplierGst, setNewSupplierGst] = useState("");
+
+  // Add Item / Product Modal State
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemPacking, setNewItemPacking] = useState("");
+  const [newItemCompany, setNewItemCompany] = useState("");
+  const [newItemRate, setNewItemRate] = useState("");
+  const [newItemMrp, setNewItemMrp] = useState("");
 
   // Dynamic list of unique saved suppliers (from parties and previous purchases)
   const supplierSuggestions = useMemo(() => {
@@ -67,7 +84,7 @@ export default function StockInwardPage() {
       }
     >();
 
-    // 1. From Parties (Vendors / Distributors / Accounts)
+    // 1. From Parties
     for (const p of parties) {
       if (p.name?.trim()) {
         map.set(p.name.toLowerCase().trim(), {
@@ -93,22 +110,82 @@ export default function StockInwardPage() {
     return Array.from(map.values());
   }, [parties, purchases]);
 
-  // Modal keyboard listener for Add Supplier
-  useEffect(() => {
-    if (!showAddSupplierModal) return;
+  // Combined product catalog (from Inventory + previous Purchase items)
+  const catalogSuggestions = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        sku?: string;
+        packing?: string;
+        company?: string;
+        purchaseRate: number;
+        mrp: number;
+        currentStock: number;
+        unit?: string;
+        batchNo?: string;
+        expiryDate?: string;
+      }
+    >();
 
+    // 1. From Inventory
+    for (const inv of inventory) {
+      const key = inv.name.toLowerCase().trim();
+      map.set(key, {
+        name: inv.name,
+        sku: inv.sku,
+        packing: inv.packing,
+        company: inv.company,
+        purchaseRate: inv.purchaseRate || 0,
+        mrp: inv.mrp || 0,
+        currentStock: inv.currentStock || 0,
+        unit: inv.unit || "Pcs",
+        batchNo: inv.batchNo,
+        expiryDate: inv.expiryDate,
+      });
+    }
+
+    // 2. From Purchases
+    for (const pur of purchases) {
+      for (const it of pur.items) {
+        const key = it.itemName.toLowerCase().trim();
+        if (!map.has(key)) {
+          map.set(key, {
+            name: it.itemName,
+            packing: it.packing,
+            company: it.company,
+            purchaseRate: it.purchaseRate || 0,
+            mrp: it.mrp || 0,
+            currentStock: it.qty || 0,
+            unit: "Pcs",
+            batchNo: it.batchNo,
+            expiryDate: it.expiryDate,
+          });
+        }
+      }
+    }
+
+    return Array.from(map.values());
+  }, [inventory, purchases]);
+
+  // Modal keyboard listener
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setShowAddSupplierModal(false);
+        setShowAddItemModal(false);
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    if (showAddSupplierModal || showAddItemModal) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showAddSupplierModal]);
+  }, [showAddSupplierModal, showAddItemModal]);
 
+  // Open Supplier Modal
   const handleOpenAddSupplierModal = () => {
     setNewSupplierName(supplierName.trim());
     setNewSupplierAddress("");
@@ -118,6 +195,7 @@ export default function StockInwardPage() {
     setShowAddSupplierModal(true);
   };
 
+  // Save Supplier
   const handleSaveSupplier = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = newSupplierName.trim();
@@ -126,7 +204,6 @@ export default function StockInwardPage() {
       return;
     }
 
-    // Save supplier to parties collection
     addParty({
       name: trimmedName,
       distributorId: `SUP-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -139,27 +216,134 @@ export default function StockInwardPage() {
       asOfDate: inwardDate || new Date().toISOString().split("T")[0],
     });
 
-    // Auto-select this newly added supplier in the purchase form
     setSupplierName(trimmedName);
     setShowAddSupplierModal(false);
-    setSupplierSaveMsg(`Supplier "${trimmedName}" saved and selected!`);
-    setTimeout(() => setSupplierSaveMsg(null), 4000);
+    setBannerFeedback(`Supplier "${trimmedName}" saved and selected!`);
+    setTimeout(() => setBannerFeedback(null), 4000);
   };
 
-  // Auto-fill existing item if matched
+  // Open Add Item Modal
+  const handleOpenAddItemModal = () => {
+    setNewItemName(itemName.trim());
+    setNewItemPacking("");
+    setNewItemCompany("");
+    setNewItemRate(purchaseRate);
+    setNewItemMrp(mrp);
+    setShowAddItemModal(true);
+  };
+
+  // Save New Item to Catalog
+  const handleSaveItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedItemName = newItemName.trim();
+    if (!trimmedItemName) {
+      alert("Please enter an item name.");
+      return;
+    }
+
+    const rateNum = parseFloat(newItemRate) || 0;
+    const mrpNum = parseFloat(newItemMrp) || (rateNum > 0 ? rateNum * 1.25 : 0);
+
+    // Add to inventory database
+    addInventoryItem({
+      sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: trimmedItemName,
+      category: "fin",
+      rackLocation: "Z-A / R-01 / S-01",
+      batchNo: `BCH-${Math.floor(1000 + Math.random() * 9000)}`,
+      expiryDate: "2028-12-31",
+      currentStock: 0,
+      unit: "Pcs",
+      purchaseRate: rateNum,
+      salePrice: mrpNum > 0 ? mrpNum * 0.85 : rateNum * 1.15,
+      mrp: mrpNum,
+      packing: newItemPacking.trim(),
+      company: newItemCompany.trim(),
+      status: "OPTIMAL",
+    });
+
+    // Auto-populate active inward row
+    setItemName(trimmedItemName);
+    if (rateNum > 0) setPurchaseRate(rateNum.toString());
+    if (mrpNum > 0) setMrp(mrpNum.toString());
+
+    setShowAddItemModal(false);
+    setBannerFeedback(
+      `Product "${trimmedItemName}" saved with MRP ₹${mrpNum.toFixed(2)} and Rate ₹${rateNum.toFixed(2)}!`,
+    );
+    setTimeout(() => setBannerFeedback(null), 4500);
+  };
+
+  // Auto-fill when Item Name changes / is selected
   const handleItemNameChange = (val: string) => {
     setItemName(val);
-    const found = inventory.find(
-      (inv) =>
-        inv.name.toLowerCase() === val.toLowerCase() ||
-        inv.sku.toLowerCase() === val.toLowerCase(),
+    const trimmed = val.toLowerCase().trim();
+    if (!trimmed) return;
+
+    // Search in catalog suggestions (inventory & previous purchases)
+    const found = catalogSuggestions.find(
+      (item) =>
+        item.name.toLowerCase().trim() === trimmed ||
+        (item.sku && item.sku.toLowerCase().trim() === trimmed),
     );
+
     if (found) {
-      setPurchaseRate(found.purchaseRate.toString());
-      setMrp(found.mrp.toString());
-      setBatchNo(
-        found.batchNo || `BCH-${Math.floor(1000 + Math.random() * 9000)}`,
+      if (found.purchaseRate > 0) {
+        setPurchaseRate(found.purchaseRate.toString());
+      }
+      if (found.mrp > 0) {
+        setMrp(found.mrp.toString());
+      }
+      if (found.batchNo && !batchNo) {
+        setBatchNo(found.batchNo);
+      }
+      if (found.expiryDate) {
+        setExpiryDate(found.expiryDate.slice(0, 7));
+      }
+    }
+  };
+
+  // Auto-fill when Batch No is typed/selected
+  const handleBatchNoChange = (val: string) => {
+    setBatchNo(val);
+    const trimmedBatch = val.toLowerCase().trim();
+    if (!trimmedBatch) return;
+
+    // Look for matching batch in inventory or purchases
+    const matchInventory = inventory.find(
+      (inv) => inv.batchNo && inv.batchNo.toLowerCase().trim() === trimmedBatch,
+    );
+    if (matchInventory) {
+      if (!itemName) setItemName(matchInventory.name);
+      if (matchInventory.purchaseRate > 0) {
+        setPurchaseRate(matchInventory.purchaseRate.toString());
+      }
+      if (matchInventory.mrp > 0) {
+        setMrp(matchInventory.mrp.toString());
+      }
+      if (matchInventory.expiryDate) {
+        setExpiryDate(matchInventory.expiryDate.slice(0, 7));
+      }
+      return;
+    }
+
+    for (const pur of purchases) {
+      const matchPurItem = pur.items.find(
+        (it) => it.batchNo && it.batchNo.toLowerCase().trim() === trimmedBatch,
       );
+      if (matchPurItem) {
+        if (!itemName) setItemName(matchPurItem.itemName);
+        if (matchPurItem.purchaseRate > 0) {
+          setPurchaseRate(matchPurItem.purchaseRate.toString());
+        }
+        if (matchPurItem.mrp > 0) {
+          setMrp(matchPurItem.mrp.toString());
+        }
+        if (matchPurItem.expiryDate) {
+          setExpiryDate(matchPurItem.expiryDate.slice(0, 7));
+        }
+        break;
+      }
     }
   };
 
@@ -170,9 +354,14 @@ export default function StockInwardPage() {
       return;
     }
     const rateNum = parseFloat(purchaseRate) || 0;
-    const mrpNum = parseFloat(mrp) || rateNum * 1.25;
+    const mrpNum = parseFloat(mrp) || (rateNum > 0 ? rateNum * 1.25 : 0);
     const qtyNum = qty > 0 ? qty : 1;
     const total = qtyNum * rateNum;
+
+    // Check if catalog has packing/company
+    const catalogMatch = catalogSuggestions.find(
+      (it) => it.name.toLowerCase().trim() === itemName.toLowerCase().trim(),
+    );
 
     const newItem: PurchaseItem = {
       id: `stg-${Date.now()}`,
@@ -184,6 +373,8 @@ export default function StockInwardPage() {
       mrp: mrpNum,
       qty: qtyNum,
       total: Math.round(total * 100) / 100,
+      packing: catalogMatch?.packing,
+      company: catalogMatch?.company,
     };
 
     setStagedItems((prev) => [...prev, newItem]);
@@ -253,18 +444,18 @@ export default function StockInwardPage() {
         </div>
       </div>
 
-      {/* Supplier Save Feedback Banner */}
-      {supplierSaveMsg && (
+      {/* Banner Feedback */}
+      {bannerFeedback && (
         <div className="p-3 bg-secondary-container text-on-secondary-container border border-secondary rounded-sm text-xs font-medium flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-secondary shrink-0" />
-          <span>{supplierSaveMsg}</span>
+          <span>{bannerFeedback}</span>
         </div>
       )}
 
       {/* Supplier & Header Information */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Supplier Name / Vendor with Add Supplier Button */}
+          {/* Supplier Name / Vendor with + Add Supplier Button */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
@@ -326,36 +517,59 @@ export default function StockInwardPage() {
         </div>
       </div>
 
-      {/* Item Inward Entry Row */}
+      {/* Item Inward Entry Row with + Add Item button and Auto-fill */}
       <form
         onSubmit={handleAddStagedItem}
-        className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4"
+        className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4 space-y-3"
       >
-        <div className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">
-          Add Inward Item Entry
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-bold text-primary uppercase tracking-wider">
+            Add Inward Item Entry
+          </div>
+          <span className="text-[11px] text-on-surface-variant">
+            ⚡ Typing item name or batch number auto-fills Rate & MRP
+          </span>
         </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-12 gap-3 items-end">
+          {/* Item Name with + Add Item Button */}
           <div className="col-span-2 sm:col-span-4">
-            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Item Name / Description
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+                Item Name / Description
+              </label>
+              <button
+                type="button"
+                onClick={handleOpenAddItemModal}
+                className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant hover:bg-surface-container-high transition-colors"
+              >
+                <Plus className="w-3 h-3" /> Add Item
+              </button>
+            </div>
             <input
               type="text"
-              list="stockProductsList"
+              list="stockProductsCatalogDatalist"
               value={itemName}
               onChange={(e) => handleItemNameChange(e.target.value)}
-              placeholder="e.g. Organic Whole Milk 1L"
+              placeholder="Search product or click Add Item..."
               className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
-            <datalist id="stockProductsList">
-              {inventory.map((inv) => (
-                <option key={inv.id} value={inv.name}>
-                  {inv.sku} (Current Stock: {inv.currentStock} {inv.unit})
+            <datalist id="stockProductsCatalogDatalist">
+              {catalogSuggestions.map((item, idx) => (
+                <option key={`${item.name}-${idx}`} value={item.name}>
+                  {item.name}
+                  {item.company ? ` (${item.company})` : ""}
+                  {item.packing ? ` [Pkg: ${item.packing}]` : ""}
+                  {item.mrp > 0 ? ` - MRP: ₹${item.mrp.toFixed(2)}` : ""}
+                  {item.purchaseRate > 0
+                    ? ` | Rate: ₹${item.purchaseRate.toFixed(2)}`
+                    : ""}
                 </option>
               ))}
             </datalist>
           </div>
 
+          {/* Batch Code with Auto-match */}
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Batch Code
@@ -363,12 +577,13 @@ export default function StockInwardPage() {
             <input
               type="text"
               value={batchNo}
-              onChange={(e) => setBatchNo(e.target.value)}
+              onChange={(e) => handleBatchNoChange(e.target.value)}
               placeholder="e.g. BCH-8821"
               className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
           </div>
 
+          {/* Expiry Date */}
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Expiry Date
@@ -381,9 +596,10 @@ export default function StockInwardPage() {
             />
           </div>
 
+          {/* Purchase Rate */}
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Purchase Rate
+              Rate (₹)
             </label>
             <input
               type="number"
@@ -391,13 +607,14 @@ export default function StockInwardPage() {
               placeholder="0.00"
               value={purchaseRate}
               onChange={(e) => setPurchaseRate(e.target.value)}
-              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors font-medium"
             />
           </div>
 
+          {/* MRP */}
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              MRP
+              MRP (₹)
             </label>
             <input
               type="number"
@@ -405,13 +622,14 @@ export default function StockInwardPage() {
               placeholder="0.00"
               value={mrp}
               onChange={(e) => setMrp(e.target.value)}
-              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors font-bold text-primary"
             />
           </div>
 
+          {/* Quantity */}
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Quantity
+              Qty
             </label>
             <input
               type="number"
@@ -422,6 +640,7 @@ export default function StockInwardPage() {
             />
           </div>
 
+          {/* Add Button */}
           <div className="col-span-1 sm:col-span-1">
             <button
               type="submit"
@@ -481,6 +700,13 @@ export default function StockInwardPage() {
                   >
                     <td className="py-2.5 px-4 font-medium text-on-surface">
                       {item.itemName}
+                      {(item.company || item.packing) && (
+                        <span className="block text-[10px] text-on-surface-variant">
+                          {[item.company, item.packing]
+                            .filter(Boolean)
+                            .join(" • ")}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2.5 px-3 font-code text-on-surface-variant">
                       {item.batchNo}
@@ -491,7 +717,7 @@ export default function StockInwardPage() {
                     <td className="py-2.5 px-3 text-right font-code text-on-surface">
                       ₹{item.purchaseRate.toFixed(2)}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-code text-on-surface">
+                    <td className="py-2.5 px-3 text-right font-code font-bold text-primary">
                       ₹{item.mrp.toFixed(2)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-code font-medium text-on-surface">
@@ -535,7 +761,7 @@ export default function StockInwardPage() {
         </div>
       </div>
 
-      {/* Add Supplier Modal */}
+      {/* 1. Add Supplier Pop-up Modal */}
       {showAddSupplierModal && (
         <div
           role="dialog"
@@ -574,7 +800,6 @@ export default function StockInwardPage() {
               onSubmit={handleSaveSupplier}
               className="p-5 space-y-4 overflow-y-auto"
             >
-              {/* 1. Supplier Name */}
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   1. Supplier Name <span className="text-error">*</span>
@@ -589,7 +814,6 @@ export default function StockInwardPage() {
                 />
               </div>
 
-              {/* 2. Address */}
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   2. Address
@@ -603,7 +827,6 @@ export default function StockInwardPage() {
                 />
               </div>
 
-              {/* 3. Phone Number */}
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   3. Phone Number
@@ -618,7 +841,6 @@ export default function StockInwardPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* 4. Shop License */}
                 <div>
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                     4. Shop License
@@ -632,7 +854,6 @@ export default function StockInwardPage() {
                   />
                 </div>
 
-                {/* 5. GST No. */}
                 <div>
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                     5. GST No.
@@ -649,7 +870,6 @@ export default function StockInwardPage() {
                 </div>
               </div>
 
-              {/* Modal Actions */}
               <div className="pt-3 border-t border-outline-variant flex justify-end items-center gap-2">
                 <button
                   type="button"
@@ -663,6 +883,141 @@ export default function StockInwardPage() {
                   className="px-5 py-2 bg-primary text-on-primary font-bold text-xs rounded-sm hover:opacity-90 flex items-center gap-1.5 transition-opacity cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Save Supplier
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Add Item / Product Pop-up Modal */}
+      {showAddItemModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-item-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddItemModal(false);
+            }
+          }}
+          className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "520px" }}
+            className="bg-surface-container-lowest border border-outline-variant rounded-md w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-outline-variant px-5 py-3.5 bg-surface-container-low shrink-0">
+              <div className="flex items-center gap-2 text-primary font-bold text-base">
+                <PackagePlus className="w-5 h-5 text-primary shrink-0" />
+                <h3 id="add-item-title">Add New Product / Item</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddItemModal(false)}
+                className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-1.5 rounded-sm transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form
+              onSubmit={handleSaveItem}
+              className="p-5 space-y-4 overflow-y-auto"
+            >
+              {/* 1. Item Name */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  1. Item Name <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  placeholder="e.g. Paracetamol 650mg, Steel Bearing X-1"
+                  className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs font-medium text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                />
+              </div>
+
+              {/* 2. Packing & 3. Company */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    2. Packing
+                  </label>
+                  <input
+                    type="text"
+                    value={newItemPacking}
+                    onChange={(e) => setNewItemPacking(e.target.value)}
+                    placeholder="e.g. 10x10, 100ml, 1kg, 25kg"
+                    className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    3. Company / Mfr
+                  </label>
+                  <input
+                    type="text"
+                    value={newItemCompany}
+                    onChange={(e) => setNewItemCompany(e.target.value)}
+                    placeholder="e.g. Sun Pharma, Tata, Bosch"
+                    className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Rate & 5. MRP */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    4. Purchase Rate (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={newItemRate}
+                    onChange={(e) => setNewItemRate(e.target.value)}
+                    className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    5. MRP (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={newItemMrp}
+                    onChange={(e) => setNewItemMrp(e.target.value)}
+                    className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code font-bold text-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-3 border-t border-outline-variant flex justify-end items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddItemModal(false)}
+                  className="px-4 py-2 border border-outline-variant rounded-sm text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-primary text-on-primary font-bold text-xs rounded-sm hover:opacity-90 flex items-center gap-1.5 transition-opacity cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Save & Select Item
                 </button>
               </div>
             </form>
