@@ -9,6 +9,7 @@ import {
   Printer,
   Search,
   Trash2,
+  User,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -150,7 +151,7 @@ export default function ActiveBillingPage() {
       ...prev,
       {
         id: `hold-${Date.now()}`,
-        name: `${customerName} (${items.length} items)`,
+        name: `${customerName.trim() || "Cash Customer"} (${items.length} items)`,
         items,
       },
     ]);
@@ -176,7 +177,7 @@ export default function ActiveBillingPage() {
     const saved = addInvoice({
       invoiceNo,
       date: invoiceDate,
-      customerName: customerName || "Cash Customer",
+      customerName: customerName.trim() || "Cash Customer",
       paymentType,
       items,
       subtotal,
@@ -236,16 +237,16 @@ export default function ActiveBillingPage() {
           {/* Customer Selection */}
           <div className="lg:col-span-5 relative">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Customer / Account
+              Customer Name
             </label>
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
               <input
                 type="text"
                 list="partyList"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Search customer or select 'Cash'..."
+                placeholder="Enter or select customer name (e.g. Ramesh Kumar, Acme Ltd)..."
                 className="w-full pl-9 pr-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-medium text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
               />
               <datalist id="partyList">
