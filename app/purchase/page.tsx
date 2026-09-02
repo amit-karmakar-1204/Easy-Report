@@ -42,12 +42,14 @@ export default function StockInwardPage() {
 
   // Header form
   const [supplierName, setSupplierName] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState(
-    `PUR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-  );
+  const [invoiceNumber, setInvoiceNumber] = useState("PUR-2026-1001");
   const [inwardDate, setInwardDate] = useState(
     new Date().toISOString().split("T")[0],
   );
+
+  useEffect(() => {
+    setInvoiceNumber(`PUR-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+  }, []);
 
   // Current item inputs
   const [itemName, setItemName] = useState("");

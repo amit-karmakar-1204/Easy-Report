@@ -52,10 +52,8 @@ export default function PerformanceReportPage() {
   const [poSupplier, setPoSupplier] = useState("Global Tech Supplies");
   const [poQty, setPoQty] = useState<number>(500);
   const [poRate, setPoRate] = useState("9.20");
-  const [poDate, setPoDate] = useState(new Date().toISOString().split("T")[0]);
-  const [poDeliveryDate, setPoDeliveryDate] = useState(
-    new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0],
-  );
+  const [poDate, setPoDate] = useState("2026-08-02");
+  const [poDeliveryDate, setPoDeliveryDate] = useState("2026-08-05");
   const [poZone, setPoZone] = useState("Zone A - Bay 04");
   const [poPriority, setPoPriority] = useState<
     "Standard" | "Urgent" | "Critical Restock"

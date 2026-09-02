@@ -31,9 +31,11 @@ export default function ActiveBillingPage() {
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split("T")[0],
   );
-  const [invoiceNo] = useState(
-    `INV-${Math.floor(100000 + Math.random() * 900000)}`,
-  );
+  const [invoiceNo, setInvoiceNo] = useState("INV-100001");
+
+  useEffect(() => {
+    setInvoiceNo(`INV-${Math.floor(100000 + Math.random() * 900000)}`);
+  }, []);
 
   // Line items in bill
   const [items, setItems] = useState<SaleItem[]>([]);
