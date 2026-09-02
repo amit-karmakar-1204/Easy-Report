@@ -28,7 +28,7 @@ import { formatINR, useERP } from "@/lib/store";
 import type { InventoryItem } from "@/lib/types";
 
 export default function LiveInventoryGridPage() {
-  const { inventory, updateInventoryItem } = useERP();
+  const { inventory, updateInventoryItem, purchases, invoices } = useERP();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -83,8 +83,87 @@ export default function LiveInventoryGridPage() {
     };
   }, [editingItem]);
 
+  // Dynamically reconcile stock with Purchases & Invoices
+  const reconciledInventory = useMemo(() => {
+    const map = new Map<string, InventoryItem>();
+
+    for (const item of inventory) {
+      const key = item.name.toLowerCase().trim();
+      map.set(key, { ...item });
+    }
+
+    for (const pur of purchases) {
+      for (const pi of pur.items) {
+        const key = pi.itemName.toLowerCase().trim();
+        if (!map.has(key)) {
+          map.set(key, {
+            id: `inv-${key}`,
+            sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+            name: pi.itemName,
+            category: "fin",
+            rackLocation: "Warehouse Alpha",
+            batchNo: pi.batchNo,
+            expiryDate: pi.expiryDate,
+            currentStock: 0,
+            unit: "Pcs",
+            purchaseRate: pi.purchaseRate,
+            salePrice: pi.mrp * 0.85,
+            mrp: pi.mrp,
+            packing: pi.packing,
+            company: pi.company,
+            supplierName: pur.supplierName,
+            status: "OPTIMAL",
+          });
+        }
+      }
+    }
+
+    return Array.from(map.values()).map((item) => {
+      const key = item.name.toLowerCase().trim();
+      const totalPurchased = purchases.reduce((sum, pur) => {
+        const p = pur.items.find(
+          (it) => it.itemName.toLowerCase().trim() === key,
+        );
+        return sum + (p ? p.qty : 0);
+      }, 0);
+
+      const totalSold = invoices.reduce((sum, inv) => {
+        const s = inv.items.find(
+          (it) => it.itemName.toLowerCase().trim() === key,
+        );
+        return sum + (s ? s.qty : 0);
+      }, 0);
+
+      const liveStock =
+        totalPurchased > 0
+          ? Math.max(0, totalPurchased - totalSold)
+          : Math.max(0, item.currentStock - totalSold);
+
+      const isExpired = item.expiryDate
+        ? new Date(item.expiryDate) < new Date("2026-08-02")
+        : false;
+
+      let status: "OPTIMAL" | "LOW" | "CRITICAL" | "EXPIRED" = "OPTIMAL";
+      if (isExpired) {
+        status = "EXPIRED";
+      } else if (liveStock === 0) {
+        status = "CRITICAL";
+      } else if (liveStock < 10) {
+        status = "LOW";
+      } else {
+        status = "OPTIMAL";
+      }
+
+      return {
+        ...item,
+        currentStock: liveStock,
+        status,
+      };
+    });
+  }, [inventory, purchases, invoices]);
+
   const filteredInventory = useMemo(() => {
-    return inventory.filter((item) => {
+    return reconciledInventory.filter((item) => {
       const matchQuery =
         !searchQuery.trim() ||
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,7 +175,7 @@ export default function LiveInventoryGridPage() {
 
       return matchQuery && matchCategory && matchRack;
     });
-  }, [inventory, searchQuery, categoryFilter, rackFilter]);
+  }, [reconciledInventory, searchQuery, categoryFilter, rackFilter]);
 
   const handleClearFilters = () => {
     setSearchQuery("");

@@ -23,7 +23,7 @@ import type { Invoice, PaymentType, SaleItem } from "@/lib/types";
 
 export default function ActiveBillingPage() {
   const _router = useRouter();
-  const { addInvoice, inventory, parties, purchases } = useERP();
+  const { addInvoice, inventory, parties, purchases, invoices } = useERP();
 
   // Invoice state
   const [customerName, setCustomerName] = useState("Cash Customer");
@@ -56,7 +56,7 @@ export default function ActiveBillingPage() {
     null,
   );
 
-  // Extract all purchased items from purchases & inventory
+  // Dynamic real-time reconciliation of all purchased items and live stock
   const purchasedItemsList = useMemo(() => {
     const map = new Map<
       string,
@@ -67,61 +67,102 @@ export default function ActiveBillingPage() {
         mrp: number;
         purchaseRate: number;
         currentStock: number;
+        totalPurchased: number;
+        totalSold: number;
         unit?: string;
+        company?: string;
+        packing?: string;
       }
     >();
 
-    // 1. Check Inventory items (primary source of current live stock)
-    for (const inv of inventory) {
-      const key = inv.name.toLowerCase().trim();
-      map.set(key, {
-        name: inv.name,
-        sku: inv.sku,
-        batchNo: inv.batchNo,
-        mrp: inv.mrp || inv.salePrice || 0,
-        purchaseRate: inv.purchaseRate || 0,
-        currentStock: inv.currentStock || 0,
-        unit: inv.unit || "Pcs",
-      });
-    }
-
-    // 2. Check Purchases for any additional purchase records
+    // 1. Gather all items and quantities from Purchases
     for (const pur of purchases) {
       for (const item of pur.items) {
         const key = item.itemName.toLowerCase().trim();
         if (!map.has(key)) {
           map.set(key, {
             name: item.itemName,
+            sku: "",
             batchNo: item.batchNo,
             mrp: item.mrp || 0,
             purchaseRate: item.purchaseRate || 0,
-            currentStock: item.qty || 0,
+            currentStock: 0,
+            totalPurchased: item.qty || 0,
+            totalSold: 0,
             unit: "Pcs",
+            company: item.company,
+            packing: item.packing,
           });
         } else {
-          const existing = map.get(key)!;
-          if (!existing.mrp && item.mrp) {
-            existing.mrp = item.mrp;
-          }
+          const entry = map.get(key)!;
+          entry.totalPurchased += item.qty || 0;
+          if (item.mrp > 0) entry.mrp = item.mrp;
+          if (item.purchaseRate > 0) entry.purchaseRate = item.purchaseRate;
+          if (item.batchNo) entry.batchNo = item.batchNo;
+          if (item.company && !entry.company) entry.company = item.company;
+          if (item.packing && !entry.packing) entry.packing = item.packing;
         }
       }
     }
 
+    // 2. Merge Inventory items metadata
+    for (const inv of inventory) {
+      const key = inv.name.toLowerCase().trim();
+      if (!map.has(key)) {
+        map.set(key, {
+          name: inv.name,
+          sku: inv.sku,
+          batchNo: inv.batchNo,
+          mrp: inv.mrp || inv.salePrice || 0,
+          purchaseRate: inv.purchaseRate || 0,
+          currentStock: inv.currentStock || 0,
+          totalPurchased: 0,
+          totalSold: 0,
+          unit: inv.unit || "Pcs",
+          company: inv.company,
+          packing: inv.packing,
+        });
+      } else {
+        const entry = map.get(key)!;
+        if (!entry.sku && inv.sku) entry.sku = inv.sku;
+        if (!entry.mrp && inv.mrp) entry.mrp = inv.mrp;
+        if (!entry.purchaseRate && inv.purchaseRate)
+          entry.purchaseRate = inv.purchaseRate;
+        if (!entry.company && inv.company) entry.company = inv.company;
+        if (!entry.packing && inv.packing) entry.packing = inv.packing;
+      }
+    }
+
+    // 3. Compute Total Sold from Invoices
+    for (const inv of invoices) {
+      for (const item of inv.items) {
+        const key = item.itemName.toLowerCase().trim();
+        if (map.has(key)) {
+          const entry = map.get(key)!;
+          entry.totalSold += item.qty || 0;
+        }
+      }
+    }
+
+    // 4. Calculate Net Available Stock: Total Purchased - Total Sold
+    for (const entry of map.values()) {
+      if (entry.totalPurchased > 0) {
+        entry.currentStock = Math.max(
+          0,
+          entry.totalPurchased - entry.totalSold,
+        );
+      } else {
+        entry.currentStock = Math.max(0, entry.currentStock - entry.totalSold);
+      }
+    }
+
     return Array.from(map.values());
-  }, [inventory, purchases]);
+  }, [inventory, purchases, invoices]);
 
   // Live stock match for currently entered/selected item
   const matchedInventoryItem = useMemo(() => {
     if (!itemName.trim()) return null;
     const trimmed = itemName.toLowerCase().trim();
-
-    const inv = inventory.find(
-      (i) =>
-        i.name.toLowerCase().trim() === trimmed ||
-        (i.sku && i.sku.toLowerCase().trim() === trimmed) ||
-        (i.batchNo && i.batchNo.toLowerCase().trim() === trimmed),
-    );
-    if (inv) return inv;
 
     const pur = purchasedItemsList.find(
       (p) =>
@@ -130,7 +171,7 @@ export default function ActiveBillingPage() {
         (p.batchNo && p.batchNo.toLowerCase().trim() === trimmed),
     );
     return pur || null;
-  }, [itemName, inventory, purchasedItemsList]);
+  }, [itemName, purchasedItemsList]);
 
   // Total quantity of currently selected item already staged in bill
   const qtyAlreadyInBill = useMemo(() => {
@@ -223,23 +264,13 @@ export default function ActiveBillingPage() {
       return;
     }
 
-    // 2. Strict Stock Validation
-    const invMatch = inventory.find(
-      (inv) =>
-        inv.name.toLowerCase().trim() === found.name.toLowerCase().trim() ||
-        (inv.sku &&
-          inv.sku.toLowerCase().trim() ===
-            (found.sku || "").toLowerCase().trim()),
-    );
-
-    const availableStock = invMatch
-      ? invMatch.currentStock
-      : found.currentStock;
+    // 2. Strict Stock Validation using reconciled available stock
+    const availableStock = found.currentStock;
 
     // Condition A: 0 or Negative Stock
     if (availableStock <= 0) {
       setItemError(
-        `Out of Stock: "${found.name}" has 0 ${invMatch?.unit || "units"} in warehouse. You cannot sell this item until new stock is inwarded in Purchase.`,
+        `Out of Stock: "${found.name}" has 0 ${found.unit || "units"} available in warehouse (Purchased: ${found.totalPurchased}, Sold: ${found.totalSold}). You cannot sell this item until new stock is inwarded in Purchase.`,
       );
       return;
     }
@@ -257,7 +288,7 @@ export default function ActiveBillingPage() {
     if (existingInBillQty + qtyNum > availableStock) {
       const remaining = Math.max(0, availableStock - existingInBillQty);
       setItemError(
-        `Insufficient Stock for "${found.name}": Available in warehouse: ${availableStock} ${invMatch?.unit || "units"} (${existingInBillQty} already added to this bill). You entered ${qtyNum} units, which exceeds remaining stock by ${existingInBillQty + qtyNum - availableStock}. Max you can add is ${remaining}.`,
+        `Insufficient Stock for "${found.name}": Available in warehouse: ${availableStock} ${found.unit || "units"} (Purchased: ${found.totalPurchased}, Sold: ${found.totalSold}, In this bill: ${existingInBillQty}). You entered ${qtyNum} units, which exceeds available stock by ${existingInBillQty + qtyNum - availableStock}. Max you can add is ${remaining}.`,
       );
       return;
     }
@@ -352,12 +383,12 @@ export default function ActiveBillingPage() {
       return;
     }
 
-    // Final verification against current warehouse stock
+    // Final verification against live reconciled stock
     for (const it of items) {
-      const invItem = inventory.find(
+      const match = purchasedItemsList.find(
         (i) => i.name.toLowerCase().trim() === it.itemName.toLowerCase().trim(),
       );
-      const currentStock = invItem ? invItem.currentStock : 0;
+      const currentStock = match ? match.currentStock : 0;
       if (it.qty > currentStock) {
         alert(
           `Cannot complete sale: Insufficient stock for "${it.itemName}". Available in warehouse: ${currentStock}, Bill Quantity: ${it.qty}. Please adjust bill quantities before proceeding.`,
@@ -398,7 +429,8 @@ export default function ActiveBillingPage() {
               Active Billing (Sale)
             </h1>
             <p className="text-xs text-on-surface-variant">
-              Point of sale and invoice generation with strict stock validation
+              Point of sale and invoice generation with live reconciled
+              warehouse stock
             </p>
           </div>
         </div>
