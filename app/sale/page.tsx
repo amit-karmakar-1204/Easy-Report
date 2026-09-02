@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
   FileText,
@@ -15,13 +17,13 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useState } from "react";
-import { useERP } from "@/lib/store";
+import { useEffect, useMemo, useState } from "react";
+import { formatINR, useERP } from "@/lib/store";
 import type { Invoice, PaymentType, SaleItem } from "@/lib/types";
 
 export default function ActiveBillingPage() {
   const _router = useRouter();
-  const { addInvoice, inventory, parties } = useERP();
+  const { addInvoice, inventory, parties, purchases } = useERP();
 
   // Invoice state
   const [customerName, setCustomerName] = useState("Cash Customer");
@@ -40,8 +42,10 @@ export default function ActiveBillingPage() {
   const [itemName, setItemName] = useState("");
   const [itemBarcode, setItemBarcode] = useState("");
   const [itemQty, setItemQty] = useState<number>(1);
-  const [itemRate, setItemRate] = useState<string>("");
+  const [itemRate, setItemRate] = useState<string>(""); // Represents MRP
   const [itemDisc, setItemDisc] = useState<string>("0");
+  const [itemError, setItemError] = useState<string | null>(null);
+
   const [heldBills, setHeldBills] = useState<
     { id: string; name: string; items: SaleItem[] }[]
   >([]);
@@ -49,6 +53,60 @@ export default function ActiveBillingPage() {
   const [lastSavedInvoice, setLastSavedInvoice] = useState<Invoice | null>(
     null,
   );
+
+  // Extract all purchased items from purchases & inventory
+  const purchasedItemsList = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        sku?: string;
+        batchNo?: string;
+        mrp: number;
+        purchaseRate: number;
+        currentStock: number;
+        unit?: string;
+      }
+    >();
+
+    // 1. Check Inventory items
+    for (const inv of inventory) {
+      const key = inv.name.toLowerCase().trim();
+      map.set(key, {
+        name: inv.name,
+        sku: inv.sku,
+        batchNo: inv.batchNo,
+        mrp: inv.mrp || inv.salePrice || 0,
+        purchaseRate: inv.purchaseRate || 0,
+        currentStock: inv.currentStock || 0,
+        unit: inv.unit || "Pcs",
+      });
+    }
+
+    // 2. Check Purchases for any additional / latest purchase records
+    for (const pur of purchases) {
+      for (const item of pur.items) {
+        const key = item.itemName.toLowerCase().trim();
+        if (!map.has(key)) {
+          map.set(key, {
+            name: item.itemName,
+            batchNo: item.batchNo,
+            mrp: item.mrp || 0,
+            purchaseRate: item.purchaseRate || 0,
+            currentStock: item.qty || 0,
+            unit: "Pcs",
+          });
+        } else {
+          const existing = map.get(key)!;
+          if (!existing.mrp && item.mrp) {
+            existing.mrp = item.mrp;
+          }
+        }
+      }
+    }
+
+    return Array.from(map.values());
+  }, [inventory, purchases]);
 
   // Modal keyboard listener & body scroll lock
   useEffect(() => {
@@ -75,49 +133,91 @@ export default function ActiveBillingPage() {
     };
   }, [showPrintModal]);
 
-  // Quick select item from inventory
+  // Quick select item from purchased items and auto-retrieve MRP
   const handleItemSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setItemName(val);
-    const found = inventory.find(
-      (inv) =>
-        inv.name.toLowerCase() === val.toLowerCase() ||
-        inv.sku.toLowerCase() === val.toLowerCase(),
+    setItemError(null);
+
+    if (!val.trim()) {
+      setItemRate("");
+      setItemBarcode("");
+      return;
+    }
+
+    const found = purchasedItemsList.find(
+      (item) =>
+        item.name.toLowerCase() === val.toLowerCase().trim() ||
+        (item.sku && item.sku.toLowerCase() === val.toLowerCase().trim()) ||
+        (item.batchNo &&
+          item.batchNo.toLowerCase() === val.toLowerCase().trim()),
     );
+
     if (found) {
-      setItemRate(found.salePrice.toString());
-      setItemBarcode(found.sku);
+      setItemRate(found.mrp > 0 ? found.mrp.toString() : "");
+      setItemBarcode(found.sku || found.batchNo || "");
     }
   };
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!itemName.trim()) {
-      alert("Please enter an item name");
+    setItemError(null);
+
+    const trimmedName = itemName.trim();
+    if (!trimmedName) {
+      setItemError("Please enter or select an item name.");
       return;
     }
-    const rateNum = parseFloat(itemRate) || 0;
+
+    // Check if item has been purchased
+    const found = purchasedItemsList.find(
+      (item) =>
+        item.name.toLowerCase() === trimmedName.toLowerCase() ||
+        (item.sku && item.sku.toLowerCase() === trimmedName.toLowerCase()) ||
+        (item.batchNo &&
+          item.batchNo.toLowerCase() === trimmedName.toLowerCase()),
+    );
+
+    if (!found) {
+      setItemError(
+        `"${trimmedName}" has not been purchased yet. Please inward/purchase this product in the Purchase section before selling.`,
+      );
+      return;
+    }
+
+    const mrpNum = parseFloat(itemRate) || found.mrp || 0;
+    if (mrpNum <= 0) {
+      setItemError(`Please enter a valid MRP for "${found.name}".`);
+      return;
+    }
+
     const discNum = parseFloat(itemDisc) || 0;
     const qtyNum = itemQty > 0 ? itemQty : 1;
-    const lineTotal = qtyNum * rateNum * (1 - discNum / 100);
+    const lineTotal = qtyNum * mrpNum * (1 - discNum / 100);
 
     const newItem: SaleItem = {
       id: `item-${Date.now()}`,
-      itemName: itemName.trim(),
-      barcode: itemBarcode || `BAR-${Math.floor(1000 + Math.random() * 9000)}`,
+      itemName: found.name,
+      barcode:
+        itemBarcode ||
+        found.sku ||
+        found.batchNo ||
+        `BAR-${Math.floor(1000 + Math.random() * 9000)}`,
       qty: qtyNum,
-      rate: rateNum,
+      rate: mrpNum, // Stores MRP as the unit rate
       discount: discNum,
       total: Math.round(lineTotal * 100) / 100,
     };
 
     setItems((prev) => [...prev, newItem]);
+
     // Reset item inputs
     setItemName("");
     setItemBarcode("");
     setItemQty(1);
     setItemRate("");
     setItemDisc("0");
+    setItemError(null);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -139,6 +239,7 @@ export default function ActiveBillingPage() {
       setItems([]);
       setItemName("");
       setItemRate("");
+      setItemError(null);
     }
   };
 
@@ -206,7 +307,7 @@ export default function ActiveBillingPage() {
               Active Billing (Sale)
             </h1>
             <p className="text-xs text-on-surface-variant">
-              Point of sale and invoice generation
+              Point of sale and invoice generation with purchase-linked MRP
             </p>
           </div>
         </div>
@@ -216,7 +317,7 @@ export default function ActiveBillingPage() {
               <span>{heldBills.length} Bill(s) on Hold</span>
               <button
                 onClick={() => handleRestoreHold(heldBills[0])}
-                className="underline hover:opacity-80"
+                className="underline hover:opacity-80 cursor-pointer"
               >
                 Restore
               </button>
@@ -231,10 +332,29 @@ export default function ActiveBillingPage() {
         </div>
       </div>
 
+      {/* Warning when no purchases recorded in system */}
+      {purchasedItemsList.length === 0 && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-sm text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>No purchases recorded yet:</strong> You must record inward
+              purchases before billing items so MRP and stock can be retrieved.
+            </span>
+          </div>
+          <Link
+            href="/purchase"
+            className="px-3 py-1 bg-primary text-on-primary font-bold rounded-sm shrink-0 hover:opacity-90 transition-opacity"
+          >
+            Go to Purchase Inward
+          </Link>
+        </div>
+      )}
+
       {/* Bill Header Info Card */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
-          {/* Customer Selection */}
+          {/* Customer Name */}
           <div className="lg:col-span-5 relative">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Customer Name
@@ -261,19 +381,19 @@ export default function ActiveBillingPage() {
           {/* Payment Type */}
           <div className="lg:col-span-2">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Payment Type
+              Payment Mode
             </label>
             <select
               value={paymentType}
               onChange={(e) => setPaymentType(e.target.value as PaymentType)}
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-medium text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             >
-              <option value="cash">Cash</option>
+              <option value="cash">Cash (Paid)</option>
               <option value="credit">Credit (Khata)</option>
             </select>
           </div>
 
-          {/* Date */}
+          {/* Invoice Date */}
           <div className="lg:col-span-2">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Date
@@ -282,11 +402,11 @@ export default function ActiveBillingPage() {
               type="date"
               value={invoiceDate}
               onChange={(e) => setInvoiceDate(e.target.value)}
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
-            ></input>
+              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-medium text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+            />
           </div>
 
-          {/* Invoice No */}
+          {/* Invoice No. */}
           <div className="lg:col-span-3">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Invoice No.
@@ -304,31 +424,44 @@ export default function ActiveBillingPage() {
       {/* Item Entry Row */}
       <form
         onSubmit={handleAddItem}
-        className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4"
+        className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4 space-y-3"
       >
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+          {/* Item Search box with Purchased Items suggestions */}
           <div className="sm:col-span-5">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Item Name / Barcode
+              Purchased Item Name / Batch / SKU
             </label>
-            <input
-              type="text"
-              list="inventoryItemsList"
-              value={itemName}
-              onChange={handleItemSelect}
-              placeholder="Scan barcode or type item name..."
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
-            />
-            <datalist id="inventoryItemsList">
-              {inventory.map((inv) => (
-                <option key={inv.id} value={inv.name}>
-                  {inv.sku} - Stock: {inv.currentStock} {inv.unit} @ ₹
-                  {inv.salePrice}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
+              <input
+                type="text"
+                list="purchasedItemsDatalist"
+                value={itemName}
+                onChange={handleItemSelect}
+                placeholder="Search or select purchased item..."
+                className={`w-full pl-9 pr-3 py-2 border ${
+                  itemError
+                    ? "border-error focus:border-error focus:ring-error"
+                    : "border-outline-variant focus:border-primary focus:ring-primary"
+                } bg-surface-container-lowest text-xs text-on-surface focus:ring-1 outline-none rounded-sm transition-colors`}
+              />
+            </div>
+            <datalist id="purchasedItemsDatalist">
+              {purchasedItemsList.map((item, i) => (
+                <option
+                  key={`${item.name}-${item.batchNo || i}`}
+                  value={item.name}
+                >
+                  MRP: ₹{item.mrp.toFixed(2)} | Stock: {item.currentStock}{" "}
+                  {item.unit || "Pcs"}
+                  {item.batchNo ? ` | Batch: ${item.batchNo}` : ""}
                 </option>
               ))}
             </datalist>
           </div>
 
+          {/* Quantity */}
           <div className="sm:col-span-2">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Qty
@@ -342,9 +475,10 @@ export default function ActiveBillingPage() {
             />
           </div>
 
+          {/* MRP directly retrieved from purchase */}
           <div className="sm:col-span-2">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Rate (₹)
+              MRP (₹)
             </label>
             <input
               type="number"
@@ -356,6 +490,7 @@ export default function ActiveBillingPage() {
             />
           </div>
 
+          {/* Discount */}
           <div className="sm:col-span-2">
             <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Disc (%)
@@ -369,15 +504,24 @@ export default function ActiveBillingPage() {
             />
           </div>
 
+          {/* Add Button */}
           <div className="sm:col-span-1">
             <button
               type="submit"
-              className="w-full py-2 bg-primary text-on-primary hover:opacity-90 font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-opacity"
+              className="w-full py-2 bg-primary text-on-primary hover:opacity-90 font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-opacity cursor-pointer"
             >
               <Plus className="w-4 h-4 mr-0.5" /> ADD
             </button>
           </div>
         </div>
+
+        {/* Error message for unpurchased or invalid items */}
+        {itemError && (
+          <div className="flex items-center gap-2 p-2.5 bg-error-container text-on-error-container rounded-sm text-xs font-medium animate-in fade-in">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{itemError}</span>
+          </div>
+        )}
       </form>
 
       {/* Billing Line Items Table */}
@@ -396,7 +540,7 @@ export default function ActiveBillingPage() {
                   QTY
                 </th>
                 <th className="py-2.5 px-3 font-bold text-on-surface-variant text-right w-28">
-                  RATE (₹)
+                  MRP (₹)
                 </th>
                 <th className="py-2.5 px-3 font-bold text-on-surface-variant text-right w-20">
                   DISC %
@@ -421,7 +565,8 @@ export default function ActiveBillingPage() {
                       No items added to current bill
                     </p>
                     <p className="text-[11px] mt-0.5">
-                      Scan a barcode or search products above to start billing
+                      Search purchased items above to retrieve MRP and start
+                      billing
                     </p>
                   </td>
                 </tr>
@@ -446,18 +591,18 @@ export default function ActiveBillingPage() {
                       {item.qty}
                     </td>
                     <td className="py-2.5 px-3 text-right font-code text-on-surface">
-                      {item.rate.toFixed(2)}
+                      ₹{item.rate.toFixed(2)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-code text-on-surface">
-                      {item.discount.toFixed(1)}
+                      {item.discount.toFixed(1)}%
                     </td>
                     <td className="py-2.5 px-3 text-right font-code font-bold text-on-surface">
-                      {item.total.toFixed(2)}
+                      ₹{item.total.toFixed(2)}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <button
                         onClick={() => handleRemoveItem(item.id)}
-                        className="text-on-surface-variant hover:text-error transition-colors p-1 rounded-sm"
+                        className="text-on-surface-variant hover:text-error transition-colors p-1 rounded-sm cursor-pointer"
                         title="Remove item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -511,19 +656,19 @@ export default function ActiveBillingPage() {
       <div className="flex flex-wrap justify-end items-center gap-3 pt-1">
         <button
           onClick={handleClear}
-          className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm"
+          className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm cursor-pointer"
         >
           CLEAR
         </button>
         <button
           onClick={handleHold}
-          className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm flex items-center gap-1.5"
+          className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm flex items-center gap-1.5 cursor-pointer"
         >
           <Pause className="w-3.5 h-3.5" /> HOLD
         </button>
         <button
           onClick={handleSaveAndPrint}
-          className="px-6 py-2.5 bg-primary text-on-primary hover:opacity-90 transition-opacity text-sm font-bold rounded-sm flex items-center gap-2"
+          className="px-6 py-2.5 bg-primary text-on-primary hover:opacity-90 transition-opacity text-sm font-bold rounded-sm flex items-center gap-2 cursor-pointer"
         >
           <Printer className="w-4 h-4" /> SAVE & PRINT
         </button>
@@ -629,7 +774,7 @@ export default function ActiveBillingPage() {
                       <span className="truncate pr-2">
                         {it.itemName}{" "}
                         <span className="text-on-surface-variant">
-                          x{it.qty}
+                          x{it.qty} @ ₹{it.rate.toFixed(2)}
                         </span>
                       </span>
                       <span className="font-semibold shrink-0">
@@ -668,10 +813,9 @@ export default function ActiveBillingPage() {
                   <kbd className="px-1 py-0.5 font-code bg-surface-container border border-outline-variant rounded text-[10px]">
                     P
                   </kbd>{" "}
-                  to print receipt
+                  to print
                 </span>
               </div>
-
               <div className="flex items-center gap-2 ml-auto">
                 <button
                   type="button"
@@ -679,18 +823,16 @@ export default function ActiveBillingPage() {
                     setShowPrintModal(false);
                     setItems([]);
                   }}
-                  className="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-semibold rounded-sm hover:bg-surface-container-high transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-outline-variant rounded-sm text-xs font-semibold hover:bg-surface-container transition-colors cursor-pointer"
                 >
-                  New Bill (ESC)
+                  Close
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    window.print();
-                  }}
-                  className="px-5 py-2 bg-primary text-on-primary font-semibold text-xs rounded-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  onClick={() => window.print()}
+                  className="px-5 py-2 bg-primary text-on-primary rounded-sm text-xs font-bold hover:opacity-90 flex items-center gap-1.5 transition-opacity cursor-pointer"
                 >
-                  <Printer className="w-3.5 h-3.5" /> Print Receipt
+                  <Printer className="w-3.5 h-3.5" /> Print Invoice
                 </button>
               </div>
             </div>

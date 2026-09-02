@@ -671,7 +671,7 @@ export default function SaleModifyPage() {
                             Qty
                           </th>
                           <th className="py-2 px-2 font-bold text-on-surface-variant w-20 text-right">
-                            Rate (₹)
+                            MRP (₹)
                           </th>
                           <th className="py-2 px-2 font-bold text-on-surface-variant w-16 text-right">
                             Disc%
@@ -778,7 +778,10 @@ export default function SaleModifyPage() {
                             (inv) =>
                               inv.name.toLowerCase() === val.toLowerCase(),
                           );
-                          if (match) setNewItemRate(match.salePrice.toString());
+                          if (match)
+                            setNewItemRate(
+                              (match.mrp || match.salePrice || 0).toString(),
+                            );
                         }}
                         className="w-full px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded-xs text-xs"
                       />
@@ -804,7 +807,7 @@ export default function SaleModifyPage() {
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="Rate ₹"
+                        placeholder="MRP ₹"
                         value={newItemRate}
                         onChange={(e) => setNewItemRate(e.target.value)}
                         className="w-full px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded-xs text-xs text-right font-code"
