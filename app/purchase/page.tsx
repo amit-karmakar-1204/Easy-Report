@@ -2,23 +2,26 @@
 
 import {
   ArrowLeft,
+  Building2,
   CheckCircle2,
   FileCheck,
   History,
   Plus,
   Trash2,
   Truck,
+  UserPlus,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
-import type { PurchaseItem } from "@/lib/types";
+import type { PartyAccount, PurchaseItem } from "@/lib/types";
 
 export default function StockInwardPage() {
   const router = useRouter();
-  const { addPurchase, inventory } = useERP();
+  const { addPurchase, inventory, parties, addParty, purchases } = useERP();
 
   // Header form
   const [supplierName, setSupplierName] = useState("");
@@ -41,6 +44,107 @@ export default function StockInwardPage() {
   const [stagedItems, setStagedItems] = useState<PurchaseItem[]>([]);
 
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [supplierSaveMsg, setSupplierSaveMsg] = useState<string | null>(null);
+
+  // Add Supplier Modal State
+  const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState("");
+  const [newSupplierAddress, setNewSupplierAddress] = useState("");
+  const [newSupplierPhone, setNewSupplierPhone] = useState("");
+  const [newSupplierLicense, setNewSupplierLicense] = useState("");
+  const [newSupplierGst, setNewSupplierGst] = useState("");
+
+  // Dynamic list of unique saved suppliers (from parties and previous purchases)
+  const supplierSuggestions = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        phone?: string;
+        address?: string;
+        gstin?: string;
+        shopLicense?: string;
+      }
+    >();
+
+    // 1. From Parties (Vendors / Distributors / Accounts)
+    for (const p of parties) {
+      if (p.name?.trim()) {
+        map.set(p.name.toLowerCase().trim(), {
+          name: p.name,
+          phone: p.phone,
+          address: p.address,
+          gstin: p.gstin,
+          shopLicense: p.shopLicense,
+        });
+      }
+    }
+
+    // 2. From recorded Purchases
+    for (const pur of purchases) {
+      if (pur.supplierName?.trim()) {
+        const key = pur.supplierName.toLowerCase().trim();
+        if (!map.has(key)) {
+          map.set(key, { name: pur.supplierName });
+        }
+      }
+    }
+
+    return Array.from(map.values());
+  }, [parties, purchases]);
+
+  // Modal keyboard listener for Add Supplier
+  useEffect(() => {
+    if (!showAddSupplierModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowAddSupplierModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showAddSupplierModal]);
+
+  const handleOpenAddSupplierModal = () => {
+    setNewSupplierName(supplierName.trim());
+    setNewSupplierAddress("");
+    setNewSupplierPhone("");
+    setNewSupplierLicense("");
+    setNewSupplierGst("");
+    setShowAddSupplierModal(true);
+  };
+
+  const handleSaveSupplier = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedName = newSupplierName.trim();
+    if (!trimmedName) {
+      alert("Please enter a supplier name.");
+      return;
+    }
+
+    // Save supplier to parties collection
+    addParty({
+      name: trimmedName,
+      distributorId: `SUP-${Math.floor(1000 + Math.random() * 9000)}`,
+      partyType: "vendor",
+      phone: newSupplierPhone.trim(),
+      address: newSupplierAddress.trim(),
+      shopLicense: newSupplierLicense.trim(),
+      gstin: newSupplierGst.trim().toUpperCase(),
+      outstandingBalance: 0,
+      asOfDate: inwardDate || new Date().toISOString().split("T")[0],
+    });
+
+    // Auto-select this newly added supplier in the purchase form
+    setSupplierName(trimmedName);
+    setShowAddSupplierModal(false);
+    setSupplierSaveMsg(`Supplier "${trimmedName}" saved and selected!`);
+    setTimeout(() => setSupplierSaveMsg(null), 4000);
+  };
 
   // Auto-fill existing item if matched
   const handleItemNameChange = (val: string) => {
@@ -75,7 +179,7 @@ export default function StockInwardPage() {
       itemName: itemName.trim(),
       batchNo:
         batchNo.trim() || `BCH-${Math.floor(1000 + Math.random() * 9000)}`,
-      expiryDate: expiryDate || "2026-12",
+      expiryDate: expiryDate || "2028-12",
       purchaseRate: rateNum,
       mrp: mrpNum,
       qty: qtyNum,
@@ -105,7 +209,7 @@ export default function StockInwardPage() {
     addPurchase({
       purchaseId: invoiceNumber,
       date: inwardDate,
-      supplierName: supplierName || "General Supplier",
+      supplierName: supplierName.trim() || "General Supplier",
       items: stagedItems,
       totalCost: invoiceTotal,
       status: "Completed",
@@ -149,27 +253,50 @@ export default function StockInwardPage() {
         </div>
       </div>
 
+      {/* Supplier Save Feedback Banner */}
+      {supplierSaveMsg && (
+        <div className="p-3 bg-secondary-container text-on-secondary-container border border-secondary rounded-sm text-xs font-medium flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-secondary shrink-0" />
+          <span>{supplierSaveMsg}</span>
+        </div>
+      )}
+
       {/* Supplier & Header Information */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Supplier Name / Vendor with Add Supplier Button */}
           <div>
-            <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Supplier Name / Vendor
-            </label>
-            <input
-              type="text"
-              list="supplierList"
-              value={supplierName}
-              onChange={(e) => setSupplierName(e.target.value)}
-              placeholder="Select or enter supplier..."
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
-            />
-            <datalist id="supplierList">
-              <option value="Global Tech Supplies" />
-              <option value="Nexus Industries" />
-              <option value="Apex Parts Co." />
-              <option value="Prime Supplies" />
-              <option value="Zenith Corp" />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+                Supplier Name / Vendor
+              </label>
+              <button
+                type="button"
+                onClick={handleOpenAddSupplierModal}
+                className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer bg-surface-container px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-container-high transition-colors"
+              >
+                <Plus className="w-3 h-3" /> Add Supplier
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                list="supplierSuggestionsDatalist"
+                value={supplierName}
+                onChange={(e) => setSupplierName(e.target.value)}
+                placeholder="Search or enter supplier name..."
+                className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              />
+            </div>
+            <datalist id="supplierSuggestionsDatalist">
+              {supplierSuggestions.map((s, idx) => (
+                <option key={`${s.name}-${idx}`} value={s.name}>
+                  {s.name}
+                  {s.phone ? ` | 📞 ${s.phone}` : ""}
+                  {s.gstin ? ` | GST: ${s.gstin}` : ""}
+                  {s.shopLicense ? ` | Lic: ${s.shopLicense}` : ""}
+                </option>
+              ))}
             </datalist>
           </div>
 
@@ -218,25 +345,27 @@ export default function StockInwardPage() {
               value={itemName}
               onChange={(e) => handleItemNameChange(e.target.value)}
               placeholder="e.g. Organic Whole Milk 1L"
-              className="w-full px-3 py-2 border border-outline-variant bg-surface text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm"
+              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
             <datalist id="stockProductsList">
               {inventory.map((inv) => (
-                <option key={inv.id} value={inv.name} />
+                <option key={inv.id} value={inv.name}>
+                  {inv.sku} (Current Stock: {inv.currentStock} {inv.unit})
+                </option>
               ))}
             </datalist>
           </div>
 
-          <div className="col-span-2 sm:col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Batch Number
+              Batch Code
             </label>
             <input
               type="text"
-              placeholder="BCH-8821-A"
               value={batchNo}
               onChange={(e) => setBatchNo(e.target.value)}
-              className="w-full px-3 py-2 border border-outline-variant bg-surface text-xs font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm"
+              placeholder="e.g. BCH-8821"
+              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
           </div>
 
@@ -248,13 +377,13 @@ export default function StockInwardPage() {
               type="month"
               value={expiryDate}
               onChange={(e) => setExpiryDate(e.target.value)}
-              className="w-full px-2 py-2 border border-outline-variant bg-surface text-xs font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm"
+              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
           </div>
 
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Rate (₹)
+              Purchase Rate
             </label>
             <input
               type="number"
@@ -262,13 +391,13 @@ export default function StockInwardPage() {
               placeholder="0.00"
               value={purchaseRate}
               onChange={(e) => setPurchaseRate(e.target.value)}
-              className="w-full px-2 py-2 border border-outline-variant bg-surface text-xs font-code text-right text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm"
+              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
           </div>
 
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              MRP (₹)
+              MRP
             </label>
             <input
               type="number"
@@ -276,27 +405,27 @@ export default function StockInwardPage() {
               placeholder="0.00"
               value={mrp}
               onChange={(e) => setMrp(e.target.value)}
-              className="w-full px-2 py-2 border border-outline-variant bg-surface text-xs font-code text-right text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm"
+              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
           </div>
 
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Qty
+              Quantity
             </label>
             <input
               type="number"
               min="1"
               value={qty}
               onChange={(e) => setQty(parseInt(e.target.value, 10) || 1)}
-              className="w-full px-2 py-2 border border-outline-variant bg-surface text-xs font-code text-right text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm"
+              className="w-full px-2 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
             />
           </div>
 
-          <div className="col-span-2 sm:col-span-1">
+          <div className="col-span-1 sm:col-span-1">
             <button
               type="submit"
-              className="w-full py-2 bg-primary text-on-primary hover:opacity-90 font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-opacity"
+              className="w-full py-2 bg-primary text-on-primary font-bold text-xs rounded-sm h-[38px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
               title="Add to Staged Inventory"
             >
               <Plus className="w-4 h-4" />
@@ -374,7 +503,7 @@ export default function StockInwardPage() {
                     <td className="py-2.5 px-4 text-center">
                       <button
                         onClick={() => handleRemoveStagedItem(item.id)}
-                        className="text-on-surface-variant hover:text-error transition-colors p-1"
+                        className="text-on-surface-variant hover:text-error transition-colors p-1 cursor-pointer"
                         title="Remove item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -399,12 +528,147 @@ export default function StockInwardPage() {
           </div>
           <button
             onClick={handleLogPurchase}
-            className="w-full sm:w-auto bg-primary text-on-primary font-bold text-xs uppercase px-8 py-3 rounded-sm hover:opacity-90 transition-opacity tracking-wider flex items-center justify-center gap-2"
+            className="w-full sm:w-auto bg-primary text-on-primary font-bold text-xs uppercase px-8 py-3 rounded-sm hover:opacity-90 transition-opacity tracking-wider flex items-center justify-center gap-2 cursor-pointer"
           >
             <Truck className="w-4 h-4" /> Log Purchase & Update Stock
           </button>
         </div>
       </div>
+
+      {/* Add Supplier Modal */}
+      {showAddSupplierModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-supplier-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddSupplierModal(false);
+            }
+          }}
+          className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "520px" }}
+            className="bg-surface-container-lowest border border-outline-variant rounded-md w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-outline-variant px-5 py-3.5 bg-surface-container-low shrink-0">
+              <div className="flex items-center gap-2 text-primary font-bold text-base">
+                <Building2 className="w-5 h-5 text-primary shrink-0" />
+                <h3 id="add-supplier-title">Add New Supplier / Vendor</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddSupplierModal(false)}
+                className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-1.5 rounded-sm transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form
+              onSubmit={handleSaveSupplier}
+              className="p-5 space-y-4 overflow-y-auto"
+            >
+              {/* 1. Supplier Name */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  1. Supplier Name <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newSupplierName}
+                  onChange={(e) => setNewSupplierName(e.target.value)}
+                  placeholder="e.g. Apex Industrial Solutions Ltd."
+                  className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs font-medium text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                />
+              </div>
+
+              {/* 2. Address */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  2. Address
+                </label>
+                <textarea
+                  rows={2}
+                  value={newSupplierAddress}
+                  onChange={(e) => setNewSupplierAddress(e.target.value)}
+                  placeholder="e.g. Plot 42, Sector-5, Industrial Area, New Delhi"
+                  className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none transition-colors"
+                />
+              </div>
+
+              {/* 3. Phone Number */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  3. Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={newSupplierPhone}
+                  onChange={(e) => setNewSupplierPhone(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                  className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* 4. Shop License */}
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    4. Shop License
+                  </label>
+                  <input
+                    type="text"
+                    value={newSupplierLicense}
+                    onChange={(e) => setNewSupplierLicense(e.target.value)}
+                    placeholder="e.g. DL-2024-LIC-8812"
+                    className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code"
+                  />
+                </div>
+
+                {/* 5. GST No. */}
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    5. GST No.
+                  </label>
+                  <input
+                    type="text"
+                    value={newSupplierGst}
+                    onChange={(e) =>
+                      setNewSupplierGst(e.target.value.toUpperCase())
+                    }
+                    placeholder="e.g. 07AAAAA0000A1Z5"
+                    className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code uppercase"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-3 border-t border-outline-variant flex justify-end items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddSupplierModal(false)}
+                  className="px-4 py-2 border border-outline-variant rounded-sm text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-primary text-on-primary font-bold text-xs rounded-sm hover:opacity-90 flex items-center gap-1.5 transition-opacity cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Save Supplier
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Success Notification */}
       {showSuccessToast && (
