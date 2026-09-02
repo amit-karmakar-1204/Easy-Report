@@ -70,69 +70,30 @@ export default function ExpiryActionBoardPage() {
     };
   }, [showReturnModal]);
 
-  // Expired items dataset
-  const [expiredItems, setExpiredItems] = useState([
-    {
-      id: "exp-1",
-      name: "Organic Whole Milk 1L",
-      batchCode: "BCH-8821-A",
-      expiryDate: "Oct 12, 2023",
-      stockQty: 1240,
-      rate: 2.8,
-      estValue: 3472.0,
-      category: "Food & Bev",
-    },
-    {
-      id: "exp-2",
-      name: "Artisan Bread Loaf - Sourdough",
-      batchCode: "BCH-9932-B",
-      expiryDate: "Oct 14, 2023",
-      stockQty: 45,
-      rate: 4.8,
-      estValue: 216.0,
-      category: "Food & Bev",
-    },
-    {
-      id: "exp-3",
-      name: "Greek Yogurt Mixed Berry 500g",
-      batchCode: "BCH-1024-C",
-      expiryDate: "Oct 15, 2023",
-      stockQty: 320,
-      rate: 3.9,
-      estValue: 1248.0,
-      category: "Food & Bev",
-    },
-    {
-      id: "exp-4",
-      name: "Fresh Spinach Pre-Washed 250g",
-      batchCode: "BCH-7741-X",
-      expiryDate: "Oct 16, 2023",
-      stockQty: 88,
-      rate: 3.5,
-      estValue: 308.0,
-      category: "Food & Bev",
-    },
-    {
-      id: "exp-5",
-      name: "Premium Ground Beef 80/20",
-      batchCode: "BCH-5510-M",
-      expiryDate: "Oct 18, 2023",
-      stockQty: 60,
-      rate: 15.0,
-      estValue: 900.0,
-      category: "Food & Bev",
-    },
-    {
-      id: "exp-6",
-      name: "Antibacterial Medical Saline 500ml",
-      batchCode: "MED-9002-S",
-      expiryDate: "Oct 10, 2023",
-      stockQty: 150,
-      rate: 22.0,
-      estValue: 3300.0,
-      category: "Pharmaceuticals",
-    },
-  ]);
+  // Expired items dynamically derived from inventory
+  const expiredItems = useMemo(() => {
+    return inventory
+      .filter(
+        (i) =>
+          i.status === "EXPIRED" ||
+          (i.expiryDate && new Date(i.expiryDate) < new Date()),
+      )
+      .map((i) => ({
+        id: i.id,
+        name: i.name,
+        batchCode: i.batchNo || "N/A",
+        expiryDate: i.expiryDate || "N/A",
+        stockQty: i.currentStock,
+        rate: i.purchaseRate,
+        estValue: i.currentStock * i.purchaseRate,
+        category:
+          i.category === "raw"
+            ? "Raw Material"
+            : i.category === "pkg"
+              ? "Packaging"
+              : "Finished Goods",
+      }));
+  }, [inventory]);
 
   const filteredItems = useMemo(() => {
     if (categoryFilter === "All") return expiredItems;
@@ -172,9 +133,6 @@ export default function ExpiryActionBoardPage() {
       .reduce((s, i) => s + i.estValue, 0);
 
     generatePurchaseReturn(selectedIds);
-    setExpiredItems((prev) =>
-      prev.filter((item) => !selectedIds.includes(item.id)),
-    );
 
     setReturnSuccessMsg(
       `Debit Note DN-${Date.now().toString().slice(-6)} generated for ${
@@ -267,7 +225,7 @@ export default function ExpiryActionBoardPage() {
           <ShieldAlert className="w-6 h-6 text-error shrink-0 mt-0.5" />
           <div>
             <h3 className="font-bold text-sm text-primary">
-              Critical: 142 Expired Items
+              Critical: {metrics.expiredItemsCount} Expired Items
             </h3>
             <p className="text-xs text-on-surface-variant mt-1">
               Immediate action required to remove these items from active stock
@@ -281,7 +239,7 @@ export default function ExpiryActionBoardPage() {
           <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
           <div>
             <h3 className="font-bold text-sm text-on-surface">
-              Warning: 89 Near-Expiry
+              Warning: {metrics.nearExpiryCount} Near-Expiry
             </h3>
             <p className="text-xs text-on-surface-variant mt-1">
               Items expiring within the next 30 days. Consider price markdown
