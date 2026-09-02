@@ -158,16 +158,37 @@ export default function SaleModifyPage() {
       alert("Please enter an item name");
       return;
     }
-    const rateNum = parseFloat(newItemRate) || 0;
+
+    const matched = inventory.find(
+      (inv) =>
+        inv.name.toLowerCase().trim() === newItemName.toLowerCase().trim(),
+    );
+
+    if (matched && matched.currentStock <= 0) {
+      alert(
+        `Out of Stock: "${matched.name}" has 0 units available in warehouse.`,
+      );
+      return;
+    }
+
+    const rateNum = parseFloat(newItemRate) || (matched ? matched.mrp : 0);
     const discNum = parseFloat(newItemDisc) || 0;
     const qtyNum = newItemQty > 0 ? newItemQty : 1;
+
+    if (matched && qtyNum > matched.currentStock) {
+      alert(
+        `Insufficient Stock: Only ${matched.currentStock} ${matched.unit || "units"} available for "${matched.name}".`,
+      );
+      return;
+    }
+
     const total =
       Math.round(qtyNum * rateNum * (1 - discNum / 100) * 100) / 100;
 
     const newItem: SaleItem = {
-      id: `item-${Date.now()}-${Math.random()}`,
-      itemName: newItemName.trim(),
-      barcode: `BAR-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      itemName: matched ? matched.name : newItemName.trim(),
+      barcode: matched?.sku || `BAR-${Math.floor(1000 + Math.random() * 9000)}`,
       qty: qtyNum,
       rate: rateNum,
       discount: discNum,

@@ -71,7 +71,7 @@ export default function ActiveBillingPage() {
       }
     >();
 
-    // 1. Check Inventory items
+    // 1. Check Inventory items (primary source of current live stock)
     for (const inv of inventory) {
       const key = inv.name.toLowerCase().trim();
       map.set(key, {
@@ -85,7 +85,7 @@ export default function ActiveBillingPage() {
       });
     }
 
-    // 2. Check Purchases for any additional / latest purchase records
+    // 2. Check Purchases for any additional purchase records
     for (const pur of purchases) {
       for (const item of pur.items) {
         const key = item.itemName.toLowerCase().trim();
@@ -109,6 +109,42 @@ export default function ActiveBillingPage() {
 
     return Array.from(map.values());
   }, [inventory, purchases]);
+
+  // Live stock match for currently entered/selected item
+  const matchedInventoryItem = useMemo(() => {
+    if (!itemName.trim()) return null;
+    const trimmed = itemName.toLowerCase().trim();
+
+    const inv = inventory.find(
+      (i) =>
+        i.name.toLowerCase().trim() === trimmed ||
+        (i.sku && i.sku.toLowerCase().trim() === trimmed) ||
+        (i.batchNo && i.batchNo.toLowerCase().trim() === trimmed),
+    );
+    if (inv) return inv;
+
+    const pur = purchasedItemsList.find(
+      (p) =>
+        p.name.toLowerCase().trim() === trimmed ||
+        (p.sku && p.sku.toLowerCase().trim() === trimmed) ||
+        (p.batchNo && p.batchNo.toLowerCase().trim() === trimmed),
+    );
+    return pur || null;
+  }, [itemName, inventory, purchasedItemsList]);
+
+  // Total quantity of currently selected item already staged in bill
+  const qtyAlreadyInBill = useMemo(() => {
+    if (!matchedInventoryItem) return 0;
+    const key = matchedInventoryItem.name.toLowerCase().trim();
+    return items
+      .filter((it) => it.itemName.toLowerCase().trim() === key)
+      .reduce((s, it) => s + it.qty, 0);
+  }, [matchedInventoryItem, items]);
+
+  const liveAvailableStock = matchedInventoryItem
+    ? matchedInventoryItem.currentStock
+    : 0;
+  const remainingStock = Math.max(0, liveAvailableStock - qtyAlreadyInBill);
 
   // Modal keyboard listener & body scroll lock
   useEffect(() => {
@@ -171,7 +207,7 @@ export default function ActiveBillingPage() {
       return;
     }
 
-    // Check if item has been purchased
+    // 1. Check if item has been purchased
     const found = purchasedItemsList.find(
       (item) =>
         item.name.toLowerCase() === trimmedName.toLowerCase() ||
@@ -187,6 +223,46 @@ export default function ActiveBillingPage() {
       return;
     }
 
+    // 2. Strict Stock Validation
+    const invMatch = inventory.find(
+      (inv) =>
+        inv.name.toLowerCase().trim() === found.name.toLowerCase().trim() ||
+        (inv.sku &&
+          inv.sku.toLowerCase().trim() ===
+            (found.sku || "").toLowerCase().trim()),
+    );
+
+    const availableStock = invMatch
+      ? invMatch.currentStock
+      : found.currentStock;
+
+    // Condition A: 0 or Negative Stock
+    if (availableStock <= 0) {
+      setItemError(
+        `Out of Stock: "${found.name}" has 0 ${invMatch?.unit || "units"} in warehouse. You cannot sell this item until new stock is inwarded in Purchase.`,
+      );
+      return;
+    }
+
+    // Condition B: Exceeding Available Stock
+    const existingInBillQty = items
+      .filter(
+        (it) =>
+          it.itemName.toLowerCase().trim() === found.name.toLowerCase().trim(),
+      )
+      .reduce((sum, it) => sum + it.qty, 0);
+
+    const qtyNum = itemQty > 0 ? itemQty : 1;
+
+    if (existingInBillQty + qtyNum > availableStock) {
+      const remaining = Math.max(0, availableStock - existingInBillQty);
+      setItemError(
+        `Insufficient Stock for "${found.name}": Available in warehouse: ${availableStock} ${invMatch?.unit || "units"} (${existingInBillQty} already added to this bill). You entered ${qtyNum} units, which exceeds remaining stock by ${existingInBillQty + qtyNum - availableStock}. Max you can add is ${remaining}.`,
+      );
+      return;
+    }
+
+    // 3. Price Validation
     const mrpNum = parseFloat(itemRate) || found.mrp || 0;
     if (mrpNum <= 0) {
       setItemError(`Please enter a valid MRP for "${found.name}".`);
@@ -194,7 +270,6 @@ export default function ActiveBillingPage() {
     }
 
     const discNum = parseFloat(itemDisc) || 0;
-    const qtyNum = itemQty > 0 ? itemQty : 1;
     const lineTotal = qtyNum * mrpNum * (1 - discNum / 100);
 
     const newItem: SaleItem = {
@@ -277,6 +352,20 @@ export default function ActiveBillingPage() {
       return;
     }
 
+    // Final verification against current warehouse stock
+    for (const it of items) {
+      const invItem = inventory.find(
+        (i) => i.name.toLowerCase().trim() === it.itemName.toLowerCase().trim(),
+      );
+      const currentStock = invItem ? invItem.currentStock : 0;
+      if (it.qty > currentStock) {
+        alert(
+          `Cannot complete sale: Insufficient stock for "${it.itemName}". Available in warehouse: ${currentStock}, Bill Quantity: ${it.qty}. Please adjust bill quantities before proceeding.`,
+        );
+        return;
+      }
+    }
+
     const saved = addInvoice({
       invoiceNo,
       date: invoiceDate,
@@ -309,7 +398,7 @@ export default function ActiveBillingPage() {
               Active Billing (Sale)
             </h1>
             <p className="text-xs text-on-surface-variant">
-              Point of sale and invoice generation with purchase-linked MRP
+              Point of sale and invoice generation with strict stock validation
             </p>
           </div>
         </div>
@@ -340,8 +429,9 @@ export default function ActiveBillingPage() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              <strong>No purchases recorded yet:</strong> You must record inward
-              purchases before billing items so MRP and stock can be retrieved.
+              <strong>No stock inward recorded:</strong> You must inward
+              products in Purchase before billing items so inventory stock and
+              MRP can be retrieved.
             </span>
           </div>
           <Link
@@ -428,6 +518,37 @@ export default function ActiveBillingPage() {
         onSubmit={handleAddItem}
         className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4 space-y-3"
       >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div className="text-xs font-bold text-primary uppercase tracking-wider">
+            Add Sale Line Item
+          </div>
+          {/* Live stock indicator for selected item */}
+          {matchedInventoryItem && (
+            <div className="flex items-center gap-2 text-xs">
+              {liveAvailableStock > 0 ? (
+                <span
+                  className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded text-[11px] ${
+                    itemQty > remainingStock
+                      ? "bg-error/15 text-error border border-error/30"
+                      : "bg-secondary-container text-on-secondary-container border border-secondary"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Warehouse Stock:{" "}
+                  <strong>
+                    {liveAvailableStock} {matchedInventoryItem.unit || "Pcs"}
+                  </strong>
+                  {qtyAlreadyInBill > 0 && ` (${qtyAlreadyInBill} in bill)`}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 font-bold text-error bg-error-container text-on-error-container px-2 py-0.5 rounded border border-error text-[11px]">
+                  <AlertCircle className="w-3.5 h-3.5" /> Out of Stock (0 units
+                  available)
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
           {/* Item Search box with Purchased Items suggestions */}
           <div className="sm:col-span-5">
@@ -473,7 +594,12 @@ export default function ActiveBillingPage() {
               min="1"
               value={itemQty}
               onChange={(e) => setItemQty(parseInt(e.target.value, 10) || 1)}
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              className={`w-full px-3 py-2 border ${
+                matchedInventoryItem &&
+                (liveAvailableStock <= 0 || itemQty > remainingStock)
+                  ? "border-error text-error font-bold"
+                  : "border-outline-variant text-on-surface"
+              } bg-surface-container-lowest text-xs text-right font-code focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors`}
             />
           </div>
 
@@ -510,18 +636,22 @@ export default function ActiveBillingPage() {
           <div className="sm:col-span-1">
             <button
               type="submit"
-              className="w-full py-2 bg-primary text-on-primary hover:opacity-90 font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-opacity cursor-pointer"
+              disabled={matchedInventoryItem ? liveAvailableStock <= 0 : false}
+              className="w-full py-2 bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-opacity cursor-pointer"
             >
               <Plus className="w-4 h-4 mr-0.5" /> ADD
             </button>
           </div>
         </div>
 
-        {/* Error message for unpurchased or invalid items */}
+        {/* Error message for Insufficient Stock or Unpurchased Items */}
         {itemError && (
-          <div className="flex items-center gap-2 p-2.5 bg-error-container text-on-error-container rounded-sm text-xs font-medium animate-in fade-in">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{itemError}</span>
+          <div className="flex items-start gap-2 p-3 bg-error-container text-on-error-container rounded-sm text-xs font-medium animate-in fade-in border border-error">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-error" />
+            <div className="space-y-0.5">
+              <span className="font-bold block">Transaction Blocked:</span>
+              <span>{itemError}</span>
+            </div>
           </div>
         )}
       </form>
@@ -589,7 +719,7 @@ export default function ActiveBillingPage() {
                         </span>
                       )}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-code text-on-surface">
+                    <td className="py-2.5 px-3 text-right font-code text-on-surface font-bold">
                       {item.qty}
                     </td>
                     <td className="py-2.5 px-3 text-right font-code text-on-surface">
