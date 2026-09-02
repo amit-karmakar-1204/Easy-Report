@@ -83,6 +83,7 @@ export interface PartyAccount {
   email?: string;
   address?: string;
   gstin?: string;
+  shopLicense?: string;
   creditLimit?: number;
   paymentTerms?: string;
   outstandingBalance: number;
