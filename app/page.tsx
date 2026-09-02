@@ -58,7 +58,7 @@ export default function DashboardPage() {
             System Live & Ready
           </span>
           <span className="text-on-surface-variant hidden sm:inline">
-            | Fiscal Year: 2023-24
+            | Fiscal Year: 2026-27
           </span>
         </div>
       </div>

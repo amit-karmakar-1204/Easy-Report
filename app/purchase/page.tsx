@@ -21,9 +21,9 @@ export default function StockInwardPage() {
   const { addPurchase, inventory } = useERP();
 
   // Header form
-  const [supplierName, setSupplierName] = useState("Global Tech Supplies");
+  const [supplierName, setSupplierName] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState(
-    `PUR-2023-${Math.floor(1000 + Math.random() * 9000)}`,
+    `PUR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
   );
   const [inwardDate, setInwardDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -32,34 +32,13 @@ export default function StockInwardPage() {
   // Current item inputs
   const [itemName, setItemName] = useState("");
   const [batchNo, setBatchNo] = useState("");
-  const [expiryDate, setExpiryDate] = useState("2025-11");
+  const [expiryDate, setExpiryDate] = useState("2028-12");
   const [purchaseRate, setPurchaseRate] = useState("");
   const [mrp, setMrp] = useState("");
   const [qty, setQty] = useState<number>(10);
 
   // Staged items list
-  const [stagedItems, setStagedItems] = useState<PurchaseItem[]>([
-    {
-      id: "stg-1",
-      itemName: "Organic Whole Milk 1L",
-      batchNo: "BCH-8821-A",
-      expiryDate: "2023-10",
-      purchaseRate: 45.0,
-      mrp: 60.0,
-      qty: 100,
-      total: 4500.0,
-    },
-    {
-      id: "stg-2",
-      itemName: "Artisan Bread Loaf - Sourdough",
-      batchNo: "BCH-9932-B",
-      expiryDate: "2023-10",
-      purchaseRate: 35.0,
-      mrp: 50.0,
-      qty: 50,
-      total: 1750.0,
-    },
-  ]);
+  const [stagedItems, setStagedItems] = useState<PurchaseItem[]>([]);
 
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 

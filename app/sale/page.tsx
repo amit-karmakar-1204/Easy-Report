@@ -33,26 +33,7 @@ export default function ActiveBillingPage() {
   );
 
   // Line items in bill
-  const [items, setItems] = useState<SaleItem[]>([
-    {
-      id: "item-1",
-      itemName: "Industrial Steel Bearing 6204-ZZ",
-      barcode: "89012345001",
-      qty: 50,
-      rate: 12.5,
-      discount: 5.0,
-      total: 593.75,
-    },
-    {
-      id: "item-2",
-      itemName: "Heavy Duty Lubricant Spray 400ml",
-      barcode: "89012345002",
-      qty: 12,
-      rate: 8.75,
-      discount: 0.0,
-      total: 105.0,
-    },
-  ]);
+  const [items, setItems] = useState<SaleItem[]>([]);
 
   // Current item input row state
   const [itemName, setItemName] = useState("");

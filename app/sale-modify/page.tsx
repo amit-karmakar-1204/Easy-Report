@@ -244,7 +244,7 @@ export default function SaleModifyPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-on-surface-variant">Fiscal Year: 2023-24</span>
+          <span className="text-on-surface-variant">Fiscal Year: 2026-27</span>
           <span className="w-1 h-1 rounded-full bg-outline"></span>
           <span className="text-secondary font-semibold">System Online</span>
           <Link

@@ -41,8 +41,8 @@ export default function PerformanceReportPage() {
     parties,
   } = useERP();
 
-  const [startDate, setStartDate] = useState("2023-09-01");
-  const [endDate, setEndDate] = useState("2023-09-30");
+  const [startDate, setStartDate] = useState("2026-08-01");
+  const [endDate, setEndDate] = useState("2026-08-31");
   const [velocityFilter, setVelocityFilter] = useState("All Items");
   const [orderedCodes, setOrderedCodes] = useState<string[]>([]);
 

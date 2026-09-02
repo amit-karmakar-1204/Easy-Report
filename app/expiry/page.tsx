@@ -17,10 +17,11 @@ import { useEffect, useMemo, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
 
 export default function ExpiryActionBoardPage() {
-  const { generatePurchaseReturn, parties, purchases } = useERP();
+  const { generatePurchaseReturn, parties, purchases, inventory, metrics } =
+    useERP();
 
   const [categoryFilter, setCategoryFilter] = useState("All");
-  const [selectedIds, setSelectedIds] = useState<string[]>(["exp-1", "exp-2"]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnSupplier, setReturnSupplier] = useState("Global Tech Supplies");
   const [returnReason, setReturnReason] = useState("Past Shelf-Life Expiry");

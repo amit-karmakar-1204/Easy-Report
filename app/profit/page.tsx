@@ -179,7 +179,9 @@ export default function DailyFinancialSummaryPage() {
             {formatINR(metrics.grossMargin)}
           </span>
           <div className="mt-3 flex items-center text-secondary-container relative z-10">
-            <span className="text-xl font-bold">{metrics.marginRate.toFixed(1)}%</span>
+            <span className="text-xl font-bold">
+              {metrics.marginRate.toFixed(1)}%
+            </span>
             <span className="text-xs ml-2 opacity-80">Gross Margin Rate</span>
           </div>
         </div>
@@ -236,7 +238,8 @@ export default function DailyFinancialSummaryPage() {
                     colSpan={6}
                     className="py-10 text-center text-on-surface-variant font-medium"
                   >
-                    No sales recorded yet. Invoices created in Sale Billing will appear here itemized.
+                    No sales recorded yet. Invoices created in Sale Billing will
+                    appear here itemized.
                   </td>
                 </tr>
               ) : (

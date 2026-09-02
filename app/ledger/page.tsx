@@ -1226,7 +1226,7 @@ export default function LedgerAccountBookPage() {
                         paymentMode === "CHEQUE"
                           ? "e.g. CHQ-4455 / HDFC Bank"
                           : paymentMode === "UPI"
-                            ? "e.g. UPI-2023-998811"
+                            ? "e.g. UPI-2026-998811"
                             : paymentMode === "CASH"
                               ? "e.g. CASH-RCPT-004"
                               : "e.g. NEFT-HDFC-9912"
