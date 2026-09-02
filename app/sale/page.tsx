@@ -11,6 +11,8 @@ import {
   Printer,
   Search,
   Trash2,
+  TrendingDown,
+  TrendingUp,
   User,
   X,
 } from "lucide-react";
@@ -47,6 +49,7 @@ export default function ActiveBillingPage() {
   const [itemRate, setItemRate] = useState<string>(""); // Represents MRP
   const [itemDisc, setItemDisc] = useState<string>("0");
   const [itemError, setItemError] = useState<string | null>(null);
+  const [warningFeedback, setWarningFeedback] = useState<string | null>(null);
 
   const [heldBills, setHeldBills] = useState<
     { id: string; name: string; items: SaleItem[] }[]
@@ -172,6 +175,33 @@ export default function ActiveBillingPage() {
     );
     return pur || null;
   }, [itemName, purchasedItemsList]);
+
+  // Live loss calculation for current input values
+  const lossCalculation = useMemo(() => {
+    const rawRate = parseFloat(itemRate) || matchedInventoryItem?.mrp || 0;
+    const discountPct = parseFloat(itemDisc) || 0;
+    const effectiveSellingPrice = rawRate * (1 - discountPct / 100);
+    const purchaseCost = matchedInventoryItem?.purchaseRate || 0;
+
+    const isLoss =
+      purchaseCost > 0 &&
+      effectiveSellingPrice > 0 &&
+      effectiveSellingPrice < purchaseCost;
+
+    const unitLoss = Math.max(0, purchaseCost - effectiveSellingPrice);
+    const totalLoss = unitLoss * (itemQty > 0 ? itemQty : 1);
+    const lossPercentage =
+      purchaseCost > 0 ? (unitLoss / purchaseCost) * 100 : 0;
+
+    return {
+      isLoss,
+      effectiveSellingPrice,
+      purchaseCost,
+      unitLoss,
+      totalLoss,
+      lossPercentage,
+    };
+  }, [itemRate, itemDisc, itemQty, matchedInventoryItem]);
 
   // Total quantity of currently selected item already staged in bill
   const qtyAlreadyInBill = useMemo(() => {
@@ -303,6 +333,17 @@ export default function ActiveBillingPage() {
     const discNum = parseFloat(itemDisc) || 0;
     const lineTotal = qtyNum * mrpNum * (1 - discNum / 100);
 
+    // 4. Check for Selling at a Loss (Warn and proceed)
+    const effectivePrice = mrpNum * (1 - discNum / 100);
+    const purchaseCost = found.purchaseRate || 0;
+    if (purchaseCost > 0 && effectivePrice < purchaseCost) {
+      const uLoss = purchaseCost - effectivePrice;
+      setWarningFeedback(
+        `⚠️ Loss Warning: Added "${found.name}" below purchase cost (Loss: -₹${uLoss.toFixed(2)}/unit, -₹${(uLoss * qtyNum).toFixed(2)} total). Transaction proceeded.`,
+      );
+      setTimeout(() => setWarningFeedback(null), 5000);
+    }
+
     const newItem: SaleItem = {
       id: `item-${Date.now()}`,
       itemName: found.name,
@@ -315,6 +356,7 @@ export default function ActiveBillingPage() {
       rate: mrpNum, // Stores MRP as the unit rate
       discount: discNum,
       total: Math.round(lineTotal * 100) / 100,
+      purchaseRate: purchaseCost,
     };
 
     setItems((prev) => [...prev, newItem]);
@@ -336,6 +378,11 @@ export default function ActiveBillingPage() {
   const totalItemsCount = items.length;
   const totalQuantity = items.reduce((sum, item) => sum + item.qty, 0);
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const totalLandingCost = items.reduce(
+    (sum, item) => sum + (item.purchaseRate || 0) * item.qty,
+    0,
+  );
+  const totalEstimatedMargin = subtotal - totalLandingCost;
   const tax = subtotal * 0.1; // 10% tax
   const grandTotal = subtotal + tax;
 
@@ -348,6 +395,7 @@ export default function ActiveBillingPage() {
       setItemName("");
       setItemRate("");
       setItemError(null);
+      setWarningFeedback(null);
     }
   };
 
@@ -429,8 +477,7 @@ export default function ActiveBillingPage() {
               Active Billing (Sale)
             </h1>
             <p className="text-xs text-on-surface-variant">
-              Point of sale and invoice generation with live reconciled
-              warehouse stock
+              Point of sale, live stock tracking, and discount loss protection
             </p>
           </div>
         </div>
@@ -472,6 +519,14 @@ export default function ActiveBillingPage() {
           >
             Go to Purchase Inward
           </Link>
+        </div>
+      )}
+
+      {/* Floating Warning Toast / Feedback */}
+      {warningFeedback && (
+        <div className="p-3 bg-amber-500/15 border border-amber-500/40 text-amber-900 dark:text-amber-200 rounded-sm text-xs font-medium flex items-center gap-2 animate-in fade-in">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>{warningFeedback}</span>
         </div>
       )}
 
@@ -554,9 +609,9 @@ export default function ActiveBillingPage() {
           <div className="text-xs font-bold text-primary uppercase tracking-wider">
             Add Sale Line Item
           </div>
-          {/* Live stock indicator for selected item */}
+          {/* Live stock & purchase rate indicator for selected item */}
           {matchedInventoryItem && (
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-xs flex-wrap">
               {liveAvailableStock > 0 ? (
                 <span
                   className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded text-[11px] ${
@@ -575,6 +630,11 @@ export default function ActiveBillingPage() {
                 <span className="inline-flex items-center gap-1 font-bold text-error bg-error-container text-on-error-container px-2 py-0.5 rounded border border-error text-[11px]">
                   <AlertCircle className="w-3.5 h-3.5" /> Out of Stock (0 units
                   available)
+                </span>
+              )}
+              {matchedInventoryItem.purchaseRate > 0 && (
+                <span className="text-[11px] font-code text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant">
+                  Cost: ₹{matchedInventoryItem.purchaseRate.toFixed(2)}/u
                 </span>
               )}
             </div>
@@ -608,7 +668,8 @@ export default function ActiveBillingPage() {
                   key={`${item.name}-${item.batchNo || i}`}
                   value={item.name}
                 >
-                  MRP: ₹{item.mrp.toFixed(2)} | Stock: {item.currentStock}{" "}
+                  MRP: ₹{item.mrp.toFixed(2)} | Cost: ₹
+                  {item.purchaseRate.toFixed(2)} | Stock: {item.currentStock}{" "}
                   {item.unit || "Pcs"}
                   {item.batchNo ? ` | Batch: ${item.batchNo}` : ""}
                 </option>
@@ -660,7 +721,11 @@ export default function ActiveBillingPage() {
               step="0.1"
               value={itemDisc}
               onChange={(e) => setItemDisc(e.target.value)}
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-right font-code text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              className={`w-full px-3 py-2 border ${
+                lossCalculation.isLoss
+                  ? "border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-200 font-bold"
+                  : "border-outline-variant bg-surface-container-lowest text-on-surface"
+              } text-xs text-right font-code focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors`}
             />
           </div>
 
@@ -669,14 +734,57 @@ export default function ActiveBillingPage() {
             <button
               type="submit"
               disabled={matchedInventoryItem ? liveAvailableStock <= 0 : false}
-              className="w-full py-2 bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-opacity cursor-pointer"
+              className={`w-full py-2 ${
+                lossCalculation.isLoss
+                  ? "bg-amber-600 hover:bg-amber-700 text-white"
+                  : "bg-primary text-on-primary hover:opacity-90"
+              } disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs rounded-sm h-[38px] flex items-center justify-center transition-all cursor-pointer`}
+              title={
+                lossCalculation.isLoss
+                  ? "Selling at a loss (Allowed)"
+                  : "Add Item"
+              }
             >
               <Plus className="w-4 h-4 mr-0.5" /> ADD
             </button>
           </div>
         </div>
 
-        {/* Error message for Insufficient Stock or Unpurchased Items */}
+        {/* Real-time Discount Loss Warning Banner (Informative & Non-blocking) */}
+        {lossCalculation.isLoss && (
+          <div className="flex items-start gap-2.5 p-3 bg-amber-500/10 border border-amber-500/40 rounded-sm text-xs text-amber-900 dark:text-amber-200 animate-in fade-in">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <div className="font-bold flex items-center gap-2">
+                <span>⚠️ Selling at a Loss Warning:</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.2 rounded font-code">
+                  -{lossCalculation.lossPercentage.toFixed(1)}% Margin
+                </span>
+              </div>
+              <p>
+                Selling price after <strong>{itemDisc}% discount</strong> is{" "}
+                <strong>
+                  ₹{lossCalculation.effectiveSellingPrice.toFixed(2)}
+                </strong>
+                , which is lower than your purchase cost of{" "}
+                <strong>₹{lossCalculation.purchaseCost.toFixed(2)}</strong>. You
+                will incur a loss of{" "}
+                <strong className="text-error font-code">
+                  ₹{lossCalculation.unitLoss.toFixed(2)}/unit
+                </strong>{" "}
+                (Total loss:{" "}
+                <strong>₹{lossCalculation.totalLoss.toFixed(2)}</strong> for{" "}
+                {itemQty} pcs).
+              </p>
+              <p className="text-[11px] opacity-80">
+                👉 You can still click <strong>ADD</strong> to proceed with the
+                sale.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Error message for Insufficient Stock or Unpurchased Items (Blocking) */}
         {itemError && (
           <div className="flex items-start gap-2 p-3 bg-error-container text-on-error-container rounded-sm text-xs font-medium animate-in fade-in border border-error">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-error" />
@@ -735,45 +843,76 @@ export default function ActiveBillingPage() {
                   </td>
                 </tr>
               ) : (
-                items.map((item, idx) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-surface-container-low transition-colors group"
-                  >
-                    <td className="py-2.5 px-3 text-center text-on-surface-variant">
-                      {idx + 1}
-                    </td>
-                    <td className="py-2.5 px-3 font-medium text-on-surface">
-                      {item.itemName}
-                      {item.barcode && (
-                        <span className="block text-[10px] text-on-surface-variant font-code">
-                          {item.barcode}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-code text-on-surface font-bold">
-                      {item.qty}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-code text-on-surface">
-                      ₹{item.rate.toFixed(2)}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-code text-on-surface">
-                      {item.discount.toFixed(1)}%
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-code font-bold text-on-surface">
-                      ₹{item.total.toFixed(2)}
-                    </td>
-                    <td className="py-2.5 px-3 text-center">
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-on-surface-variant hover:text-error transition-colors p-1 rounded-sm cursor-pointer"
-                        title="Remove item"
+                items.map((item, idx) => {
+                  const effectiveUnitPrice =
+                    item.rate * (1 - item.discount / 100);
+                  const isItemLoss =
+                    item.purchaseRate &&
+                    item.purchaseRate > 0 &&
+                    effectiveUnitPrice < item.purchaseRate;
+                  const itemUnitLoss = isItemLoss
+                    ? (item.purchaseRate || 0) - effectiveUnitPrice
+                    : 0;
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-surface-container-low transition-colors group ${
+                        isItemLoss ? "bg-amber-500/5" : ""
+                      }`}
+                    >
+                      <td className="py-2.5 px-3 text-center text-on-surface-variant">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2.5 px-3 font-medium text-on-surface">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{item.itemName}</span>
+                          {isItemLoss && (
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 rounded"
+                              title={`Purchased at ₹${item.purchaseRate?.toFixed(2)}, selling at ₹${effectiveUnitPrice.toFixed(2)}`}
+                            >
+                              <TrendingDown className="w-3 h-3 text-amber-600 shrink-0" />
+                              Loss: -₹{itemUnitLoss.toFixed(2)}/u
+                            </span>
+                          )}
+                        </div>
+                        {item.barcode && (
+                          <span className="block text-[10px] text-on-surface-variant font-code">
+                            {item.barcode}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-code text-on-surface font-bold">
+                        {item.qty}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-code text-on-surface">
+                        ₹{item.rate.toFixed(2)}
+                      </td>
+                      <td
+                        className={`py-2.5 px-3 text-right font-code ${
+                          item.discount > 0
+                            ? "text-primary font-bold"
+                            : "text-on-surface"
+                        }`}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                        {item.discount.toFixed(1)}%
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-code font-bold text-on-surface">
+                        ₹{item.total.toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <button
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-on-surface-variant hover:text-error transition-colors p-1 rounded-sm cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -781,12 +920,32 @@ export default function ActiveBillingPage() {
 
         {/* Totals Section */}
         <div className="mt-auto bg-surface-container-low border-t border-outline-variant p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div className="text-xs text-on-surface-variant">
-            Total Items:{" "}
-            <span className="font-bold text-on-surface">{totalItemsCount}</span>{" "}
-            &nbsp;|&nbsp; Total Qty:{" "}
-            <span className="font-bold text-on-surface">{totalQuantity}</span>
+          <div className="text-xs text-on-surface-variant space-y-1">
+            <div>
+              Total Items:{" "}
+              <span className="font-bold text-on-surface">
+                {totalItemsCount}
+              </span>{" "}
+              &nbsp;|&nbsp; Total Qty:{" "}
+              <span className="font-bold text-on-surface">{totalQuantity}</span>
+            </div>
+            {totalLandingCost > 0 && (
+              <div className="flex items-center gap-2">
+                {totalEstimatedMargin >= 0 ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-secondary text-[11px]">
+                    <TrendingUp className="w-3.5 h-3.5" /> Est. Profit: +
+                    {formatINR(totalEstimatedMargin)}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded text-[11px]">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />{" "}
+                    Overall Loss: -{formatINR(Math.abs(totalEstimatedMargin))}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
+
           <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-right self-end sm:self-auto">
             <div>
               <div className="text-[10px] font-bold text-on-surface-variant uppercase">
@@ -939,6 +1098,7 @@ export default function ActiveBillingPage() {
                         {it.itemName}{" "}
                         <span className="text-on-surface-variant">
                           x{it.qty} @ ₹{it.rate.toFixed(2)}
+                          {it.discount > 0 && ` (-${it.discount}%)`}
                         </span>
                       </span>
                       <span className="font-semibold shrink-0">

@@ -10,6 +10,7 @@ export interface SaleItem {
   rate: number;
   discount: number; // percentage
   total: number;
+  purchaseRate?: number;
 }
 
 export interface Invoice {
