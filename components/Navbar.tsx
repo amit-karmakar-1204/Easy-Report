@@ -10,6 +10,8 @@ import {
   Menu,
   RefreshCw,
   Search,
+  Sparkles,
+  Trash2,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,12 +33,12 @@ export function Navbar({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCloudModal, setShowCloudModal] = useState(false);
-  const [isSeeding, setIsSeeding] = useState(false);
-  const [seedResult, setSeedResult] = useState<string | null>(null);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
   const {
     metrics,
-    resetToDefaults,
+    clearAllData,
     isFirebaseConnected,
     isFirebaseActive,
     seedFirestore,
@@ -106,15 +108,35 @@ export function Navbar({
   };
 
   const handleSeedCloud = async () => {
-    setIsSeeding(true);
-    setSeedResult(null);
+    setIsLoadingAction(true);
+    setActionFeedback(null);
     try {
       const res = await seedFirestore();
-      setSeedResult(res.message);
+      setActionFeedback(res.message);
     } catch (err) {
-      setSeedResult(`Error: ${(err as Error).message}`);
+      setActionFeedback(`Error: ${(err as Error).message}`);
     } finally {
-      setIsSeeding(false);
+      setIsLoadingAction(false);
+    }
+  };
+
+  const handleClearData = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to clear all data? This will remove all demo and current records.",
+      )
+    ) {
+      return;
+    }
+    setIsLoadingAction(true);
+    setActionFeedback(null);
+    try {
+      const res = await clearAllData();
+      setActionFeedback(res.message);
+    } catch (err) {
+      setActionFeedback(`Error: ${(err as Error).message}`);
+    } finally {
+      setIsLoadingAction(false);
     }
   };
 
@@ -174,7 +196,7 @@ export function Navbar({
                 ? "Firebase Firestore Connected"
                 : "Firebase Offline / Local Storage Mode"
             }
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-sm border transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-sm border transition-colors cursor-pointer ${
               isFirebaseActive
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
                 : "bg-surface-container-high text-on-surface-variant border-outline-variant hover:bg-surface-container-highest"
@@ -226,61 +248,52 @@ export function Navbar({
                   : "Currently running in local fallback mode using browser storage. Add your Firebase credentials in .env.local to activate Cloud Firestore synchronization."}
               </p>
 
-              {isFirebaseActive ? (
-                <div className="space-y-2">
-                  <button
-                    onClick={handleSeedCloud}
-                    disabled={isSeeding}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-primary text-on-primary rounded-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                  >
-                    {isSeeding ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Seeding Database...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Database className="w-3.5 h-3.5" />
-                        <span>Seed Cloud Database</span>
-                      </>
-                    )}
-                  </button>
-
-                  {seedResult && (
-                    <p className="text-[11px] p-2 bg-surface-container-high rounded text-on-surface border border-outline-variant">
-                      {seedResult}
-                    </p>
+              <div className="space-y-2">
+                <button
+                  onClick={handleClearData}
+                  disabled={isLoadingAction}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-error-container text-on-error-container rounded-sm font-medium hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {isLoadingAction ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear All Data (Clean Slate)</span>
+                    </>
                   )}
-                </div>
-              ) : (
-                <div className="p-2.5 bg-surface-container-high rounded border border-outline-variant text-[11px] text-on-surface-variant space-y-1">
-                  <p className="font-semibold text-on-surface">To connect:</p>
-                  <p>
-                    1. Open{" "}
-                    <code className="bg-surface-container px-1 py-0.5 rounded">
-                      .env.local
-                    </code>
+                </button>
+
+                <button
+                  onClick={handleSeedCloud}
+                  disabled={isLoadingAction}
+                  className="w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-surface-container-high text-on-surface rounded-sm font-medium hover:bg-surface-container-highest disabled:opacity-50 transition-all border border-outline-variant cursor-pointer text-[11px]"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span>Load Sample Demo Data (Optional)</span>
+                </button>
+
+                {actionFeedback && (
+                  <p className="text-[11px] p-2 bg-surface-container-high rounded text-on-surface border border-outline-variant">
+                    {actionFeedback}
                   </p>
-                  <p>2. Fill in your Firebase Web App credentials</p>
-                  <p>3. Restart development server</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Reset / Demo Data Sync */}
+        {/* Quick Clear Data Button */}
         <button
-          onClick={() => {
-            if (confirm("Reset ERP state to initial demo dataset?")) {
-              resetToDefaults();
-            }
-          }}
-          title="Reset Sample Data"
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-sm border border-outline-variant transition-colors"
+          onClick={handleClearData}
+          title="Clear All Records & Start Clean"
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-on-surface-variant hover:text-error hover:bg-error-container/30 rounded-sm border border-outline-variant transition-colors cursor-pointer"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Reset Data</span>
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Clear Data</span>
         </button>
 
         {/* Notifications */}
@@ -307,32 +320,45 @@ export function Navbar({
                 </span>
               </div>
               <div className="max-h-64 overflow-y-auto divide-y divide-outline-variant text-xs">
-                <Link
-                  href="/expiry"
-                  onClick={() => setShowNotifications(false)}
-                  className="block px-3 py-2.5 hover:bg-surface-container-low transition-colors"
-                >
-                  <p className="font-semibold text-error flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
-                    {metrics.expiredItemsCount} items have reached expiry
-                  </p>
-                  <p className="text-on-surface-variant mt-0.5">
-                    Click to review on Expiry Action Board
-                  </p>
-                </Link>
-                <Link
-                  href="/performance"
-                  onClick={() => setShowNotifications(false)}
-                  className="block px-3 py-2.5 hover:bg-surface-container-low transition-colors"
-                >
-                  <p className="font-semibold text-primary flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-                    {metrics.reorderCount} items requiring stock reorder
-                  </p>
-                  <p className="text-on-surface-variant mt-0.5">
-                    Review stock velocity analysis
-                  </p>
-                </Link>
+                {metrics.expiredItemsCount === 0 &&
+                metrics.reorderCount === 0 ? (
+                  <div className="px-3 py-4 text-center text-on-surface-variant">
+                    No active alerts. All stock optimal.
+                  </div>
+                ) : (
+                  <>
+                    {metrics.expiredItemsCount > 0 && (
+                      <Link
+                        href="/expiry"
+                        onClick={() => setShowNotifications(false)}
+                        className="block px-3 py-2.5 hover:bg-surface-container-low transition-colors"
+                      >
+                        <p className="font-semibold text-error flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
+                          {metrics.expiredItemsCount} items have reached expiry
+                        </p>
+                        <p className="text-on-surface-variant mt-0.5">
+                          Click to review on Expiry Action Board
+                        </p>
+                      </Link>
+                    )}
+                    {metrics.reorderCount > 0 && (
+                      <Link
+                        href="/performance"
+                        onClick={() => setShowNotifications(false)}
+                        className="block px-3 py-2.5 hover:bg-surface-container-low transition-colors"
+                      >
+                        <p className="font-semibold text-primary flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                          {metrics.reorderCount} items requiring stock reorder
+                        </p>
+                        <p className="text-on-surface-variant mt-0.5">
+                          Review stock velocity analysis
+                        </p>
+                      </Link>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           )}

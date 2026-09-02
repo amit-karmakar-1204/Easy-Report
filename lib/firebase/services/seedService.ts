@@ -1,12 +1,18 @@
-import { doc, writeBatch } from "firebase/firestore";
 import {
-  defaultInventory,
+  collection,
+  doc,
+  getDocs,
+  query,
+  writeBatch,
+} from "firebase/firestore";
+import { db } from "../config";
+import {
   defaultInvoices,
+  defaultPurchases,
+  defaultInventory,
   defaultParties,
   defaultPerformanceItems,
-  defaultPurchases,
 } from "@/lib/defaultData";
-import { db } from "../config";
 
 export async function seedInitialDataToFirestore(): Promise<{
   success: boolean;
@@ -68,6 +74,51 @@ export async function seedInitialDataToFirestore(): Promise<{
     return {
       success: false,
       message: `Seed failed: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function clearFirestoreData(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  if (!db) {
+    return {
+      success: false,
+      message: "Firebase is not configured or initialized.",
+    };
+  }
+
+  try {
+    const collectionsToClear = [
+      "invoices",
+      "purchases",
+      "inventory",
+      "parties",
+      "performance",
+    ];
+
+    for (const colName of collectionsToClear) {
+      const q = query(collection(db, colName));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const batch = writeBatch(db);
+        for (const docSnap of snapshot.docs) {
+          batch.delete(docSnap.ref);
+        }
+        await batch.commit();
+      }
+    }
+
+    return {
+      success: true,
+      message: "All collections in Firestore have been cleared.",
+    };
+  } catch (error) {
+    console.error("Failed to clear Firestore:", error);
+    return {
+      success: false,
+      message: `Clear failed: ${(error as Error).message}`,
     };
   }
 }

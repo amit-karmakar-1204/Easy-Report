@@ -193,44 +193,56 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
-                {recentTransactions.map((tx) => (
-                  <tr
-                    key={tx.id}
-                    className="hover:bg-surface-container-low transition-colors"
-                  >
-                    <td className="p-3 text-on-surface-variant">{tx.date}</td>
-                    <td className="p-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-xs text-[10px] font-bold uppercase tracking-wider ${
-                          tx.type === "Sale"
-                            ? "bg-primary text-on-primary"
-                            : "bg-surface-container-highest text-on-surface"
-                        }`}
-                      >
-                        {tx.type}
-                      </span>
-                    </td>
-                    <td className="p-3 font-medium text-on-surface">
-                      {tx.entity}
-                    </td>
-                    <td className="p-3 font-bold text-right font-code text-on-surface">
-                      {formatINR(tx.amount)}
-                    </td>
-                    <td className="p-3 text-center">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-xs text-[10px] font-bold uppercase tracking-wider ${
-                          tx.status === "Completed"
-                            ? "bg-secondary-container text-on-secondary-container"
-                            : tx.status === "Pending"
-                              ? "bg-tertiary-fixed text-on-tertiary-fixed"
-                              : "bg-error-container text-on-error-container"
-                        }`}
-                      >
-                        {tx.status}
-                      </span>
+                {recentTransactions.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="p-8 text-center text-on-surface-variant font-medium"
+                    >
+                      No transactions recorded yet. Create a Sale or Purchase to
+                      get started.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  recentTransactions.map((tx) => (
+                    <tr
+                      key={tx.id}
+                      className="hover:bg-surface-container-low transition-colors"
+                    >
+                      <td className="p-3 text-on-surface-variant">{tx.date}</td>
+                      <td className="p-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-xs text-[10px] font-bold uppercase tracking-wider ${
+                            tx.type === "Sale"
+                              ? "bg-primary text-on-primary"
+                              : "bg-surface-container-highest text-on-surface"
+                          }`}
+                        >
+                          {tx.type}
+                        </span>
+                      </td>
+                      <td className="p-3 font-medium text-on-surface">
+                        {tx.entity}
+                      </td>
+                      <td className="p-3 font-bold text-right font-code text-on-surface">
+                        {formatINR(tx.amount)}
+                      </td>
+                      <td className="p-3 text-center">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-xs text-[10px] font-bold uppercase tracking-wider ${
+                            tx.status === "Completed"
+                              ? "bg-secondary-container text-on-secondary-container"
+                              : tx.status === "Pending"
+                                ? "bg-tertiary-fixed text-on-tertiary-fixed"
+                                : "bg-error-container text-on-error-container"
+                          }`}
+                        >
+                          {tx.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

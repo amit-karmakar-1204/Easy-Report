@@ -3,14 +3,8 @@
 import type React from "react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
-  defaultInventory,
-  defaultInvoices,
-  defaultParties,
-  defaultPerformanceItems,
-  defaultPurchases,
-} from "./defaultData";
-import {
   batchDeleteInventoryItems,
+  clearFirestoreData,
   createInventoryItemDoc,
   createInvoiceDoc,
   createPartyDoc,
@@ -74,6 +68,7 @@ export interface ERPContextType {
     totalUnitsSold: number;
   };
   performanceItems: PerformanceItem[];
+  clearAllData: () => Promise<{ success: boolean; message: string }>;
   resetToDefaults: () => void;
   isFirebaseConnected: boolean;
   isFirebaseActive: boolean;
@@ -85,20 +80,18 @@ const STORAGE_PREFIX = "EASY_REPORT_ERP_";
 const ERPContext = createContext<ERPContextType | null>(null);
 
 export function ERPProvider({ children }: { children: React.ReactNode }) {
-  const [invoices, setInvoices] = useState<Invoice[]>(defaultInvoices);
-  const [purchases, setPurchases] = useState<Purchase[]>(defaultPurchases);
-  const [inventory, setInventory] = useState<InventoryItem[]>(defaultInventory);
-  const [parties, setParties] = useState<PartyAccount[]>(defaultParties);
-  const [performanceList, setPerformanceList] = useState<PerformanceItem[]>(
-    defaultPerformanceItems,
-  );
-  const [selectedPartyId, setSelectedPartyId] = useState<string>("party-1");
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [parties, setParties] = useState<PartyAccount[]>([]);
+  const [performanceList, setPerformanceList] = useState<PerformanceItem[]>([]);
+  const [selectedPartyId, setSelectedPartyId] = useState<string>("");
   const [isHydrated, setIsHydrated] = useState(false);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
 
   const isConfigured = useMemo(() => isFirebaseConfigured(), []);
 
-  // Firebase Real-time Subscriptions
+  // Firebase Real-time Subscriptions or Local Storage Fallback
   useEffect(() => {
     if (!isConfigured) {
       // Fallback: Load from localStorage
@@ -118,7 +111,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (savedInvoices) setInvoices(JSON.parse(savedInvoices));
         if (savedPurchases) setPurchases(JSON.parse(savedPurchases));
         if (savedInventory) setInventory(JSON.parse(savedInventory));
-        if (savedParties) setParties(JSON.parse(savedParties));
+        if (savedParties) {
+          const parsedParties = JSON.parse(savedParties);
+          setParties(parsedParties);
+          if (parsedParties.length > 0) {
+            setSelectedPartyId(parsedParties[0].id);
+          }
+        }
         if (savedPerf) setPerformanceList(JSON.parse(savedPerf));
       } catch (e) {
         console.warn("Failed to load ERP state from localStorage", e);
@@ -127,33 +126,42 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Subscribe to Firestore collections
+    // Subscribe to Firestore collections directly
     setIsFirebaseConnected(true);
     setIsHydrated(true);
 
-    const unsubInvoices = subscribeInvoices((data) => {
-      if (data.length > 0) {
+    const unsubInvoices = subscribeInvoices(
+      (data) => {
         setInvoices(data);
-      }
-    });
+      },
+      (err) => console.error("Invoices listener error:", err),
+    );
 
-    const unsubPurchases = subscribePurchases((data) => {
-      if (data.length > 0) {
+    const unsubPurchases = subscribePurchases(
+      (data) => {
         setPurchases(data);
-      }
-    });
+      },
+      (err) => console.error("Purchases listener error:", err),
+    );
 
-    const unsubInventory = subscribeInventory((data) => {
-      if (data.length > 0) {
+    const unsubInventory = subscribeInventory(
+      (data) => {
         setInventory(data);
-      }
-    });
+      },
+      (err) => console.error("Inventory listener error:", err),
+    );
 
-    const unsubParties = subscribeParties((data) => {
-      if (data.length > 0) {
+    const unsubParties = subscribeParties(
+      (data) => {
         setParties(data);
-      }
-    });
+        if (data.length > 0) {
+          setSelectedPartyId((prev) =>
+            prev && data.some((p) => p.id === prev) ? prev : data[0].id,
+          );
+        }
+      },
+      (err) => console.error("Parties listener error:", err),
+    );
 
     return () => {
       unsubInvoices?.();
@@ -163,7 +171,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isConfigured]);
 
-  // Persist to localStorage if Firebase is not active
+  // Persist to localStorage if Firebase is not configured
   useEffect(() => {
     if (!isHydrated || isConfigured) return;
     try {
@@ -491,81 +499,108 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const resetToDefaults = () => {
-    setInvoices(defaultInvoices);
-    setPurchases(defaultPurchases);
-    setInventory(defaultInventory);
-    setParties(defaultParties);
-    setPerformanceList(defaultPerformanceItems);
-    setSelectedPartyId("party-1");
-    if (!isConfigured) {
-      localStorage.clear();
+  const clearAllData = async (): Promise<{
+    success: boolean;
+    message: string;
+  }> => {
+    setInvoices([]);
+    setPurchases([]);
+    setInventory([]);
+    setParties([]);
+    setPerformanceList([]);
+    setSelectedPartyId("");
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`${STORAGE_PREFIX}invoices`);
+      localStorage.removeItem(`${STORAGE_PREFIX}purchases`);
+      localStorage.removeItem(`${STORAGE_PREFIX}inventory`);
+      localStorage.removeItem(`${STORAGE_PREFIX}parties`);
+      localStorage.removeItem(`${STORAGE_PREFIX}performanceItems`);
     }
+
+    if (isConfigured) {
+      return await clearFirestoreData();
+    }
+
+    return {
+      success: true,
+      message: "Local data cleared successfully.",
+    };
+  };
+
+  const resetToDefaults = () => {
+    clearAllData();
   };
 
   const seedFirestore = async () => {
-    const res = await seedInitialDataToFirestore();
-    if (res.success) {
-      setInvoices(defaultInvoices);
-      setPurchases(defaultPurchases);
-      setInventory(defaultInventory);
-      setParties(defaultParties);
-      setPerformanceList(defaultPerformanceItems);
-    }
-    return res;
+    return await seedInitialDataToFirestore();
   };
 
-  // Dynamically computed metrics
+  // Dynamically computed metrics from live state
   const metrics = useMemo(() => {
-    const todayStr = "2023-10-24";
-    const _todayInvoices = invoices.filter((i) => i.date === todayStr || true);
+    const todayStr = new Date().toISOString().split("T")[0];
+    const todayInvoices = invoices.filter((i) => i.date === todayStr);
 
-    // Total sales
     const totalSalesValue = invoices.reduce(
-      (acc, inv) => acc + inv.grandTotal,
+      (acc, inv) => acc + (Number(inv.grandTotal) || 0),
       0,
     );
-    // Estimated landing cost (approx 70% of sales)
-    const totalLandingCost = totalSalesValue * 0.703;
-    const grossMargin = totalSalesValue - totalLandingCost;
-    const _marginRate =
-      totalSalesValue > 0 ? (grossMargin / totalSalesValue) * 100 : 29.69;
 
-    const _expiredItemsCount =
-      inventory
-        .filter((item) => item.status === "EXPIRED")
-        .reduce((acc, item) => acc + (item.currentStock > 0 ? 1 : 0), 0) || 342;
-    const _nearExpiryCount =
-      inventory.filter(
-        (item) => item.status === "LOW" || item.status === "CRITICAL",
-      ).length || 89;
+    // Calculate landing cost based on actual purchases or cost of goods sold
+    const totalLandingCost = purchases.reduce(
+      (acc, pur) => acc + (Number(pur.totalCost) || 0),
+      0,
+    );
+
+    const grossMargin = totalSalesValue - totalLandingCost;
+    const marginRate =
+      totalSalesValue > 0 ? (grossMargin / totalSalesValue) * 100 : 0;
+
+    const todayProfit = todayInvoices.reduce(
+      (acc, inv) => acc + (Number(inv.grandTotal) || 0),
+      0,
+    );
+
+    const expiredItemsCount = inventory.filter(
+      (item) => item.status === "EXPIRED" && item.currentStock > 0,
+    ).length;
+
+    const nearExpiryCount = inventory.filter(
+      (item) =>
+        (item.status === "LOW" || item.status === "CRITICAL") &&
+        item.currentStock > 0,
+    ).length;
 
     const totalStockValue = inventory.reduce(
-      (acc, item) => acc + item.currentStock * item.purchaseRate,
+      (acc, item) =>
+        acc +
+        (Number(item.currentStock) || 0) * (Number(item.purchaseRate) || 0),
       0,
     );
+
     const reorderCount = inventory.filter(
       (item) => item.status === "LOW" || item.status === "CRITICAL",
     ).length;
-    const totalUnitsSold =
-      invoices.reduce(
-        (acc, inv) => acc + inv.items.reduce((s, it) => s + it.qty, 0),
-        0,
-      ) + 12000;
+
+    const totalUnitsSold = invoices.reduce(
+      (acc, inv) =>
+        acc + inv.items.reduce((s, it) => s + (Number(it.qty) || 0), 0),
+      0,
+    );
 
     return {
-      todayProfit: 12450.0,
-      expiredItemsCount: 342,
-      nearExpiryCount: 89,
-      totalSalesValue: 45230.0,
-      totalLandingCost: 31800.5,
-      grossMargin: 13429.5,
-      marginRate: 29.69,
-      totalStockValue: Math.round(totalStockValue) || 452890,
-      reorderCount: reorderCount || 24,
+      todayProfit,
+      expiredItemsCount,
+      nearExpiryCount,
+      totalSalesValue,
+      totalLandingCost,
+      grossMargin,
+      marginRate,
+      totalStockValue: Math.round(totalStockValue),
+      reorderCount,
       totalUnitsSold,
     };
-  }, [invoices, inventory]);
+  }, [invoices, purchases, inventory]);
 
   return (
     <ERPContext.Provider
@@ -590,6 +625,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         reorderItem,
         metrics,
         performanceItems: performanceList,
+        clearAllData,
         resetToDefaults,
         isFirebaseConnected,
         isFirebaseActive: isConfigured,
@@ -615,5 +651,5 @@ export function formatINR(amount: number): string {
     currency: "INR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(amount || 0);
 }
