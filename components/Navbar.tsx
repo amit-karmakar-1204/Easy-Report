@@ -7,17 +7,20 @@ import {
   CloudOff,
   Database,
   Loader2,
+  LogOut,
   Menu,
   RefreshCw,
   Search,
   Sparkles,
   Trash2,
+  Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/lib/auth";
 import { useERP } from "@/lib/store";
 
 interface NavbarProps {
@@ -36,6 +39,7 @@ export function Navbar({
   const [isLoadingAction, setIsLoadingAction] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
+  const { user, isDeveloper, logout } = useAuth();
   const {
     metrics,
     clearAllData,
@@ -43,6 +47,7 @@ export function Navbar({
     isFirebaseActive,
     seedFirestore,
   } = useERP();
+
   const router = useRouter();
 
   const notifRef = useRef<HTMLDivElement>(null);
@@ -371,24 +376,48 @@ export function Navbar({
             aria-label="User Account"
             className="flex items-center gap-2 p-1.5 hover:bg-surface-container-high transition-colors text-on-surface cursor-pointer rounded-sm"
           >
-            <div className="w-8 h-8 rounded-sm bg-primary text-on-primary flex items-center justify-center font-bold text-xs">
-              WA
+            <div className="w-8 h-8 rounded-sm bg-primary text-on-primary flex items-center justify-center font-bold text-xs uppercase font-mono">
+              {(user?.userId || "ER").substring(0, 2)}
             </div>
             <div className="hidden xl:block text-left text-xs leading-tight">
-              <div className="font-semibold">Warehouse Alpha</div>
-              <div className="text-[10px] text-on-surface-variant">
-                Admin Manager
+              <div className="font-semibold flex items-center gap-1.5">
+                <span>{user?.displayName || "ERP Operator"}</span>
+                {isDeveloper && (
+                  <span className="text-[9px] bg-primary/10 text-primary px-1 rounded font-mono font-bold">
+                    DEV
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-on-surface-variant uppercase font-mono">
+                {user?.role || "Staff"} &bull; ID: {user?.userId || "N/A"}
               </div>
             </div>
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-sm shadow-lg py-2 z-50 text-xs">
+            <div className="absolute right-0 mt-2 w-64 bg-surface-container-lowest border border-outline-variant rounded-sm shadow-lg py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
               <div className="px-3 py-2 border-b border-outline-variant">
-                <p className="font-semibold text-primary">Warehouse Alpha</p>
-                <p className="text-on-surface-variant">admin@easyreport.erp</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-primary">{user?.displayName}</p>
+                  <span className="text-[9px] font-mono uppercase bg-surface-container px-1.5 py-0.5 rounded font-bold text-on-surface-variant">
+                    {user?.role}
+                  </span>
+                </div>
+                <p className="text-on-surface-variant font-mono text-[11px] mt-0.5">{user?.email}</p>
+                <p className="text-on-surface-variant/80 font-mono text-[10px]">User ID: {user?.userId}</p>
               </div>
+
               <div className="py-1">
+                {isDeveloper && (
+                  <Link
+                    href="/users"
+                    onClick={() => setShowUserMenu(false)}
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-surface-container-low text-primary font-semibold"
+                  >
+                    <Users className="w-3.5 h-3.5 text-primary" />
+                    <span>Developer User Console</span>
+                  </Link>
+                )}
                 <Link
                   href="/ledger"
                   onClick={() => setShowUserMenu(false)}
@@ -403,6 +432,20 @@ export function Navbar({
                 >
                   Financial Summary
                 </Link>
+              </div>
+
+              <div className="pt-1 border-t border-outline-variant">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-error-container/20 text-error text-left cursor-pointer font-medium"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
               </div>
             </div>
           )}

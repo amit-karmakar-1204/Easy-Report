@@ -13,9 +13,11 @@ import {
   ShoppingCart,
   TrendingUp,
   Truck,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 import { useERP } from "@/lib/store";
 
 interface SidebarProps {
@@ -26,6 +28,7 @@ interface SidebarProps {
 export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const { metrics } = useERP();
+  const { user, isDeveloper, logout } = useAuth();
 
   const navItems = [
     {
@@ -33,6 +36,18 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       href: "/",
       icon: LayoutDashboard,
     },
+    ...(isDeveloper
+      ? [
+          {
+            section: "DEVELOPER CONTROL",
+          },
+          {
+            label: "User Provisioning",
+            href: "/users",
+            icon: Users,
+          },
+        ]
+      : []),
     {
       section: "SALES MODULE",
     },
@@ -116,11 +131,17 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       >
         {/* Header summary in sidebar */}
         <div className="px-4 mb-3">
-          <div className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
-            Admin Panel
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant flex items-center justify-between">
+            <span>Terminal Operator</span>
+            <span className="font-mono text-primary font-bold">
+              {user?.role?.toUpperCase()}
+            </span>
           </div>
-          <div className="text-sm font-bold text-primary mt-0.5">
-            Warehouse Alpha
+          <div className="text-sm font-bold text-primary mt-0.5 truncate">
+            {user?.displayName || "Warehouse Alpha"}
+          </div>
+          <div className="text-[10px] text-on-surface-variant/80 font-mono truncate">
+            ID: {user?.userId || "N/A"}
           </div>
         </div>
 
@@ -175,21 +196,23 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
         {/* Bottom actions */}
         <div className="mt-auto pt-3 border-t border-outline-variant px-2 space-y-0.5">
           <button
+            type="button"
             onClick={() =>
               alert(
-                "Easy Report Wholesale ERP v2.4\nPrecision Wholesale Interface - All systems active.",
+                `Easy Report Wholesale ERP v2.4\nLogged in as: ${user?.displayName} (${user?.role})\nUser ID: ${user?.userId}`,
               )
             }
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-on-surface hover:bg-surface-container-highest transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-on-surface hover:bg-surface-container-highest transition-colors text-left cursor-pointer"
           >
             <Settings className="w-4 h-4 text-on-surface-variant" />
             <span>Settings</span>
           </button>
           <button
-            onClick={() => alert("Logged in as Warehouse Alpha Admin.")}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-on-surface hover:bg-surface-container-highest transition-colors text-left"
+            type="button"
+            onClick={() => logout()}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-error hover:bg-error-container/20 transition-colors text-left cursor-pointer"
           >
-            <LogOut className="w-4 h-4 text-on-surface-variant" />
+            <LogOut className="w-4 h-4 text-error" />
             <span>Logout</span>
           </button>
         </div>
