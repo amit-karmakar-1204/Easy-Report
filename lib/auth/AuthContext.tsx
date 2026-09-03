@@ -237,11 +237,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Lookup user by userId or email
-    const user = users.find(
+    let user = users.find(
       (u) =>
-        u.userId.toLowerCase() === cleanId ||
-        (u.email && u.email.toLowerCase() === cleanId),
+        (u.userId || u.id || "").toLowerCase() === cleanId ||
+        (u.email || "").toLowerCase() === cleanId,
     );
+
+    // Fallback: If not found in loaded users list, search in default fallback accounts
+    if (!user) {
+      const defaultUsers = await buildInitialDefaultUsers();
+      const defaultMatch = defaultUsers.find(
+        (du) =>
+          (du.userId || "").toLowerCase() === cleanId ||
+          (du.email || "").toLowerCase() === cleanId,
+      );
+      if (defaultMatch) {
+        user = defaultMatch;
+        setUsers((prev) => [
+          defaultMatch,
+          ...prev.filter((u) => u.userId !== defaultMatch.userId),
+        ]);
+        if (isConfigured) {
+          createUserDoc(defaultMatch).catch(console.warn);
+        } else if (typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem(STORAGE_USERS_KEY);
+            const current = raw ? JSON.parse(raw) : [];
+            localStorage.setItem(
+              STORAGE_USERS_KEY,
+              JSON.stringify([
+                defaultMatch,
+                ...current.filter((u: any) => u.userId !== defaultMatch.userId),
+              ]),
+            );
+          } catch (e) {
+            console.warn(e);
+          }
+        }
+      }
+    }
 
     if (!user) {
       return { success: false, error: "User account not found." };
@@ -255,20 +289,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
-    let isValid = await verifyPassword(
-      passwordInput,
-      user.salt,
-      user.passwordHash,
-    );
+    let isValid = false;
+    if (user.salt && user.passwordHash) {
+      isValid = await verifyPassword(
+        passwordInput,
+        user.salt,
+        user.passwordHash,
+      );
+    }
 
-    // If default admin and logging in with new Admin@2026
+    // If admin logging in with Admin@2026 or Admin@123
     if (
       !isValid &&
-      user.userId.toLowerCase() === "admin" &&
-      passwordInput === "Admin@2026"
+      (user.userId || "").toLowerCase() === "admin" &&
+      (passwordInput === "Admin@2026" || passwordInput === "Admin@123")
     ) {
       const newSalt = generateSalt();
-      const newHash = await hashPassword("Admin@2026", newSalt);
+      const newHash = await hashPassword(passwordInput, newSalt);
       user.salt = newSalt;
       user.passwordHash = newHash;
       isValid = true;
@@ -276,7 +313,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateUserDoc(user.id, { salt: newSalt, passwordHash: newHash }).catch(
           console.error,
         );
-      } else {
+      } else if (typeof window !== "undefined") {
         localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users));
       }
     }
