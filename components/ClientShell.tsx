@@ -7,14 +7,23 @@ import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ERPProvider } from "@/lib/store";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
+import { useGlobalKeyboardShortcuts } from "@/hooks/useGlobalKeyboardShortcuts";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Register global keyboard navigation & hotkeys
+  useGlobalKeyboardShortcuts({
+    onToggleShortcutsModal: () => setIsShortcutsModalOpen((prev) => !prev),
+    onToggleSidebar: () => setIsMobileSidebarOpen((prev) => !prev),
+  });
 
   // Route guard: if not authenticated and not on /login, redirect to /login
   useEffect(() => {
@@ -65,6 +74,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
       <Navbar
         isMobileSidebarOpen={isMobileSidebarOpen}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
       />
       <div className="flex flex-1 pt-16">
         <Sidebar
@@ -76,6 +86,10 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <ChangePasswordModal />
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
+      />
     </div>
   );
 }

@@ -680,6 +680,48 @@ export default function ActiveBillingPage() {
     setShowPrintModal(true);
   };
 
+  // Billing hotkeys listener (F8=Hold, F9=Clear, Ctrl+Enter=Save & Print)
+  useEffect(() => {
+    if (showPrintModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Quick Save Bill: Ctrl + Enter
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleSaveAndPrint();
+        return;
+      }
+
+      // Quick Hold Bill: F8
+      if (e.key === "F8") {
+        e.preventDefault();
+        handleHold();
+        return;
+      }
+
+      // Quick Clear Bill: F9
+      if (e.key === "F9") {
+        e.preventDefault();
+        handleClear();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    showPrintModal,
+    items,
+    invoiceNo,
+    invoiceDate,
+    customerName,
+    paymentType,
+    subtotal,
+    tax,
+    grandTotal,
+    purchasedItemsList,
+  ]);
+
   return (
     <div className="max-w-7xl mx-auto space-y-4">
       {/* Top Breadcrumb & Actions */}
@@ -904,6 +946,12 @@ export default function ActiveBillingPage() {
                 value={itemName}
                 onChange={handleItemNameChange}
                 onFocus={() => setIsSearchDropdownOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setIsSearchDropdownOpen(false);
+                    e.currentTarget.blur();
+                  }
+                }}
                 placeholder="Search item name, company, or batch..."
                 className={`w-full pl-9 pr-3 py-2 border ${
                   itemError
@@ -1319,21 +1367,35 @@ export default function ActiveBillingPage() {
       <div className="flex flex-wrap justify-end items-center gap-3 pt-1">
         <button
           onClick={handleClear}
-          className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm cursor-pointer"
+          title="Clear current staged bill (Hotkey: F9)"
+          className="px-4 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm flex items-center gap-1.5 cursor-pointer"
         >
-          CLEAR
+          <span>CLEAR</span>
+          <kbd className="text-[10px] font-mono opacity-70 bg-surface-container px-1 py-0.2 rounded border border-outline-variant">
+            F9
+          </kbd>
         </button>
         <button
           onClick={handleHold}
-          className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm flex items-center gap-1.5 cursor-pointer"
+          title="Put bill on hold (Hotkey: F8)"
+          className="px-4 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-high border border-outline-variant transition-colors text-xs font-bold rounded-sm flex items-center gap-1.5 cursor-pointer"
         >
-          <Pause className="w-3.5 h-3.5" /> HOLD
+          <Pause className="w-3.5 h-3.5" />
+          <span>HOLD</span>
+          <kbd className="text-[10px] font-mono opacity-70 bg-surface-container px-1 py-0.2 rounded border border-outline-variant">
+            F8
+          </kbd>
         </button>
         <button
           onClick={handleSaveAndPrint}
+          title="Save & Print Invoice (Hotkey: Ctrl+Enter)"
           className="px-6 py-2.5 bg-primary text-on-primary hover:opacity-90 transition-opacity text-sm font-bold rounded-sm flex items-center gap-2 cursor-pointer"
         >
-          <Printer className="w-4 h-4" /> SAVE & PRINT
+          <Printer className="w-4 h-4" />
+          <span>SAVE & PRINT</span>
+          <kbd className="text-[10px] font-mono font-bold bg-on-primary/20 text-on-primary px-1.5 py-0.5 rounded border border-on-primary/30">
+            Ctrl+↵
+          </kbd>
         </button>
       </div>
 

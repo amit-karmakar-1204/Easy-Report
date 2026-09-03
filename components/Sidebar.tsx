@@ -35,6 +35,7 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       label: "Main Dashboard",
       href: "/",
       icon: LayoutDashboard,
+      shortcut: "Alt+H",
     },
     {
       section: "SALES MODULE",
@@ -43,11 +44,13 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       label: "Active Billing (Sale)",
       href: "/sale",
       icon: ShoppingCart,
+      shortcut: "Alt+1",
     },
     {
       label: "Sale Modify (Invoices)",
       href: "/sale-modify",
       icon: FileEdit,
+      shortcut: "Alt+6",
     },
     {
       section: "PURCHASE MODULE",
@@ -56,11 +59,13 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       label: "Stock Inward (Purchase)",
       href: "/purchase",
       icon: Truck,
+      shortcut: "Alt+2",
     },
     {
       label: "Purchase History",
       href: "/purchase-modify",
       icon: Receipt,
+      shortcut: "Alt+8",
     },
     {
       section: "REPORTS & ACCOUNTS",
@@ -69,21 +74,25 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       label: "Ledger A/C (Party Khata)",
       href: "/ledger",
       icon: BookOpen,
+      shortcut: "Alt+4",
     },
     {
       label: "Stock Status (Inventory)",
       href: "/inventory",
       icon: Boxes,
+      shortcut: "Alt+3",
     },
     {
       label: "Stock & Sale Analysis",
       href: "/performance",
       icon: TrendingUp,
+      shortcut: "Alt+7",
     },
     {
       label: "Today's Profit Analysis",
       href: "/profit",
       icon: DollarSign,
+      shortcut: "Alt+9",
     },
     {
       label: "Expired Items Board",
@@ -91,6 +100,7 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       icon: AlertTriangle,
       badge: metrics.expiredItemsCount,
       badgeColor: "bg-error text-on-error",
+      shortcut: "Alt+5",
     },
     ...(isAdmin
       ? [
@@ -192,6 +202,16 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
                     }`}
                   >
                     {item.badge}
+                  </span>
+                ) : item.shortcut ? (
+                  <span
+                    className={`text-[9px] font-mono px-1 py-0.2 rounded border shrink-0 ${
+                      isActive
+                        ? "border-on-primary/30 text-on-primary bg-on-primary/10"
+                        : "border-outline-variant/60 text-on-surface-variant/70 bg-surface-container"
+                    }`}
+                  >
+                    {item.shortcut}
                   </span>
                 ) : null}
               </Link>
