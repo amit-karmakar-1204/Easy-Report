@@ -61,8 +61,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Attempt generation with available Gemini models
-    const models = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.0-flash"];
+    // Attempt generation with active Gemini models
+    const models = [
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+      "gemini-3.7-flash",
+      "gemini-3.8-flash",
+    ];
 
     let lastError: any = null;
     let responseText = "";
