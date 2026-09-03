@@ -6,14 +6,14 @@ import {
   Boxes,
   DollarSign,
   FileEdit,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Receipt,
-  Settings,
   ShoppingCart,
   TrendingUp,
   Truck,
-  Users,
+  UserCog,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,7 +28,7 @@ interface SidebarProps {
 export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const { metrics } = useERP();
-  const { user, isDeveloper, logout } = useAuth();
+  const { currentUser, isAdmin, logout, openChangePasswordModal } = useAuth();
 
   const navItems = [
     {
@@ -36,18 +36,6 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       href: "/",
       icon: LayoutDashboard,
     },
-    ...(isDeveloper
-      ? [
-          {
-            section: "DEVELOPER CONTROL",
-          },
-          {
-            label: "User Provisioning",
-            href: "/users",
-            icon: Users,
-          },
-        ]
-      : []),
     {
       section: "SALES MODULE",
     },
@@ -104,6 +92,18 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       badge: metrics.expiredItemsCount,
       badgeColor: "bg-error text-on-error",
     },
+    ...(isAdmin
+      ? [
+          {
+            section: "ADMINISTRATION",
+          },
+          {
+            label: "User Management",
+            href: "/users",
+            icon: UserCog,
+          },
+        ]
+      : []),
   ];
 
   const handleLinkClick = () => {
@@ -131,17 +131,23 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       >
         {/* Header summary in sidebar */}
         <div className="px-4 mb-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant flex items-center justify-between">
-            <span>Terminal Operator</span>
-            <span className="font-mono text-primary font-bold">
-              {user?.role?.toUpperCase()}
+          <div className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center justify-between">
+            <span>{isAdmin ? "Admin Panel" : "Staff Panel"}</span>
+            <span
+              className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                isAdmin
+                  ? "bg-primary/10 text-primary"
+                  : "bg-secondary-container text-on-secondary-container"
+              }`}
+            >
+              {currentUser?.role || "user"}
             </span>
           </div>
           <div className="text-sm font-bold text-primary mt-0.5 truncate">
-            {user?.displayName || "Warehouse Alpha"}
+            {currentUser?.displayName || "Warehouse Alpha"}
           </div>
-          <div className="text-[10px] text-on-surface-variant/80 font-mono truncate">
-            ID: {user?.userId || "N/A"}
+          <div className="text-[11px] text-on-surface-variant/80 font-mono">
+            @{currentUser?.userId || "user"}
           </div>
         </div>
 
@@ -197,23 +203,25 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
         <div className="mt-auto pt-3 border-t border-outline-variant px-2 space-y-0.5">
           <button
             type="button"
-            onClick={() =>
-              alert(
-                `Easy Report Wholesale ERP v2.4\nLogged in as: ${user?.displayName} (${user?.role})\nUser ID: ${user?.userId}`,
-              )
-            }
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              openChangePasswordModal();
+            }}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-on-surface hover:bg-surface-container-highest transition-colors text-left cursor-pointer"
           >
-            <Settings className="w-4 h-4 text-on-surface-variant" />
-            <span>Settings</span>
+            <KeyRound className="w-4 h-4 text-on-surface-variant" />
+            <span>Change Password</span>
           </button>
           <button
             type="button"
-            onClick={() => logout()}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-error hover:bg-error-container/20 transition-colors text-left cursor-pointer"
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              logout();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs text-error hover:bg-error-container/30 transition-colors text-left cursor-pointer font-medium"
           >
-            <LogOut className="w-4 h-4 text-error" />
-            <span>Logout</span>
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>

@@ -1,11 +1,12 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ERPProvider } from "@/lib/store";
-import { Loader2 } from "lucide-react";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 
@@ -15,68 +16,76 @@ function ShellContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
-  const isLoginPage = pathname === "/login";
-
+  // Route guard: if not authenticated and not on /login, redirect to /login
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated && !isLoginPage) {
-        router.replace("/login");
-      } else if (isAuthenticated && isLoginPage) {
-        router.replace("/");
-      }
+    if (!isLoading && !isAuthenticated && pathname !== "/login") {
+      router.replace("/login");
     }
-  }, [isAuthenticated, isLoading, isLoginPage, router]);
+  }, [isLoading, isAuthenticated, pathname, router]);
 
-  // If on login page, render children cleanly without ERP navbar/sidebar
-  if (isLoginPage) {
-    return <div className="min-h-screen bg-background text-on-surface">{children}</div>;
-  }
-
-  // Loading state while checking authentication
-  if (isLoading || !isAuthenticated) {
+  // Loading spinner during auth hydration
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-background text-on-surface flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3 bg-surface-container-lowest border border-outline-variant px-8 py-6 rounded-md shadow-sm">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <div className="text-center">
-            <h2 className="text-sm font-bold text-on-surface uppercase tracking-wider">
-              EASY REPORT ERP
-            </h2>
-            <p className="text-xs text-on-surface-variant mt-1">
-              Verifying session credentials...
-            </p>
-          </div>
+      <div className="min-h-screen bg-background text-on-surface flex flex-col items-center justify-center gap-3">
+        <div className="w-10 h-10 bg-primary text-on-primary font-bold text-sm rounded-sm flex items-center justify-center shadow-md animate-pulse">
+          ER
+        </div>
+        <div className="flex items-center gap-2 text-xs text-on-surface-variant font-medium">
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          <span>Initializing Easy Report ERP...</span>
         </div>
       </div>
     );
   }
 
-  return (
-    <ERPProvider>
-      <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans">
-        <Navbar
-          isMobileSidebarOpen={isMobileSidebarOpen}
-          onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-        />
-        <div className="flex flex-1 pt-16">
-          <Sidebar
-            isOpenMobile={isMobileSidebarOpen}
-            onCloseMobile={() => setIsMobileSidebarOpen(false)}
-          />
-          <main className="flex-1 md:ml-[240px] min-h-[calc(100vh-4rem)] p-4 md:p-6 overflow-x-hidden">
-            {children}
-          </main>
+  // If on login page, render child directly without ERP chrome
+  if (pathname === "/login") {
+    return (
+      <div className="min-h-screen bg-background text-on-surface font-sans">
+        {children}
+      </div>
+    );
+  }
+
+  // If not authenticated, prevent flash of ERP content while redirect is processing
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background text-on-surface flex items-center justify-center">
+        <div className="flex items-center gap-2 text-xs text-on-surface-variant font-medium">
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          <span>Redirecting to login...</span>
         </div>
       </div>
-    </ERPProvider>
+    );
+  }
+
+  // Authenticated ERP Shell
+  return (
+    <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans">
+      <Navbar
+        isMobileSidebarOpen={isMobileSidebarOpen}
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+      />
+      <div className="flex flex-1 pt-16">
+        <Sidebar
+          isOpenMobile={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        />
+        <main className="flex-1 md:ml-[240px] min-h-[calc(100vh-4rem)] p-4 md:p-6 overflow-x-hidden">
+          {children}
+        </main>
+      </div>
+      <ChangePasswordModal />
+    </div>
   );
 }
 
 export function ClientShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <ShellContent>{children}</ShellContent>
+      <ERPProvider>
+        <ShellContent>{children}</ShellContent>
+      </ERPProvider>
     </AuthProvider>
   );
 }
-

@@ -11,6 +11,11 @@ export interface SaleItem {
   discount: number; // percentage
   total: number;
   purchaseRate?: number;
+  company?: string;
+  batchNo?: string;
+  packing?: string;
+  mrp?: number;
+  inventoryItemId?: string;
 }
 
 export interface Invoice {

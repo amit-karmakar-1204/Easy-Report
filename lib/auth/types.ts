@@ -1,38 +1,57 @@
-export type UserRole = "developer" | "admin" | "manager" | "staff";
+export type UserRole = "admin" | "user";
 
-export type UserStatus = "active" | "suspended";
-
-export interface UserProfile {
-  uid: string;
-  userId: string; // Unique alphanumeric ID e.g., "developer", "cashier01", "dev_amit"
-  email: string;
+export interface UserAccount {
+  id: string; // Internal unique ID (e.g. "usr-1712345678")
+  userId: string; // Login username/ID (e.g. "admin", "amit", lowercase alphanumeric)
   displayName: string;
+  email?: string;
   role: UserRole;
-  status: UserStatus;
-  createdAt: string;
+  passwordHash: string;
+  salt: string;
+  createdAt: string; // ISO 8601
+  updatedAt?: string;
+  status: "active" | "disabled";
   createdBy?: string;
-  lastLoginAt?: string;
-  passwordPlainHint?: string; // Stored for developer inspection/copying in admin view
 }
 
-export interface CreateUserPayload {
+export interface CurrentUser {
+  id: string;
   userId: string;
-  email: string;
-  password: string;
   displayName: string;
+  email?: string;
   role: UserRole;
+  status: "active" | "disabled";
 }
 
-export interface UpdateUserPayload {
-  displayName?: string;
-  role?: UserRole;
-  status?: UserStatus;
-  password?: string;
-}
-
-export interface AuthState {
-  user: UserProfile | null;
-  isLoading: boolean;
+export interface AuthContextType {
+  currentUser: CurrentUser | null;
+  users: UserAccount[];
   isAuthenticated: boolean;
-  isDeveloper: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
+  isFirebaseActive: boolean;
+  login: (
+    userId: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  createUser: (data: {
+    userId: string;
+    displayName: string;
+    role: UserRole;
+    password: string;
+    email?: string;
+  }) => Promise<{ success: boolean; error?: string; user?: UserAccount }>;
+  adminResetPassword: (
+    userId: string,
+    newPassword: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  deleteUser: (id: string) => Promise<{ success: boolean; error?: string }>;
+  openChangePasswordModal: () => void;
+  closeChangePasswordModal: () => void;
+  isChangePasswordModalOpen: boolean;
 }

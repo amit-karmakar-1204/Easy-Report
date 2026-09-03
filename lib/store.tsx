@@ -216,13 +216,31 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     setInvoices((prev) => [newInvoice, ...prev]);
 
-    // Calculate stock deductions
+    // Calculate stock deductions matching specific inventory item
     const updatedInventory = inventory.map((item) => {
-      const sold = invoiceData.items.find(
-        (si) => si.itemName.toLowerCase() === item.name.toLowerCase(),
-      );
-      if (sold) {
-        const newStock = Math.max(0, item.currentStock - sold.qty);
+      const soldQty = invoiceData.items
+        .filter((si) => {
+          if (si.inventoryItemId && item.id) {
+            return si.inventoryItemId === item.id;
+          }
+          const sameName =
+            si.itemName.toLowerCase().trim() === item.name.toLowerCase().trim();
+          const sameCompany =
+            !si.company ||
+            !item.company ||
+            si.company.toLowerCase().trim() ===
+              item.company.toLowerCase().trim();
+          const sameBatch =
+            !si.batchNo ||
+            !item.batchNo ||
+            si.batchNo.toLowerCase().trim() ===
+              item.batchNo.toLowerCase().trim();
+          return sameName && sameCompany && sameBatch;
+        })
+        .reduce((sum, si) => sum + si.qty, 0);
+
+      if (soldQty > 0) {
+        const newStock = Math.max(0, item.currentStock - soldQty);
         const status: "OPTIMAL" | "LOW" | "CRITICAL" | "EXPIRED" =
           newStock === 0 ? "CRITICAL" : newStock < 200 ? "LOW" : "OPTIMAL";
         const updatedItem: InventoryItem = {
@@ -280,13 +298,22 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     setPurchases((prev) => [newPurchase, ...prev]);
 
-    // Update or add inventory
+    // Update or add inventory items keeping different companies & batches distinct
     setInventory((prev) => {
       const updated = [...prev];
       purchaseData.items.forEach((pi) => {
-        const existingIdx = updated.findIndex(
-          (item) => item.name.toLowerCase() === pi.itemName.toLowerCase(),
-        );
+        const existingIdx = updated.findIndex((item) => {
+          const sameName =
+            item.name.toLowerCase().trim() === pi.itemName.toLowerCase().trim();
+          const sameCompany =
+            (item.company || "").toLowerCase().trim() ===
+            (pi.company || "").toLowerCase().trim();
+          const sameBatch =
+            !pi.batchNo ||
+            (item.batchNo || "").toLowerCase().trim() ===
+              pi.batchNo.toLowerCase().trim();
+          return sameName && sameCompany && sameBatch;
+        });
         if (existingIdx >= 0) {
           const updatedItem: InventoryItem = {
             ...updated[existingIdx],

@@ -2,18 +2,17 @@
 
 import {
   Bell,
-  Check,
   Cloud,
   CloudOff,
   Database,
+  KeyRound,
   Loader2,
   LogOut,
   Menu,
-  RefreshCw,
   Search,
   Sparkles,
   Trash2,
-  Users,
+  UserCog,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -39,15 +38,8 @@ export function Navbar({
   const [isLoadingAction, setIsLoadingAction] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
-  const { user, isDeveloper, logout } = useAuth();
-  const {
-    metrics,
-    clearAllData,
-    isFirebaseConnected,
-    isFirebaseActive,
-    seedFirestore,
-  } = useERP();
-
+  const { metrics, clearAllData, isFirebaseActive, seedFirestore } = useERP();
+  const { currentUser, isAdmin, logout, openChangePasswordModal } = useAuth();
   const router = useRouter();
 
   const notifRef = useRef<HTMLDivElement>(null);
@@ -376,72 +368,107 @@ export function Navbar({
             aria-label="User Account"
             className="flex items-center gap-2 p-1.5 hover:bg-surface-container-high transition-colors text-on-surface cursor-pointer rounded-sm"
           >
-            <div className="w-8 h-8 rounded-sm bg-primary text-on-primary flex items-center justify-center font-bold text-xs uppercase font-mono">
-              {(user?.userId || "ER").substring(0, 2)}
+            <div className="w-8 h-8 rounded-sm bg-primary text-on-primary flex items-center justify-center font-bold text-xs">
+              {(currentUser?.displayName || currentUser?.userId || "U")
+                .substring(0, 2)
+                .toUpperCase()}
             </div>
             <div className="hidden xl:block text-left text-xs leading-tight">
-              <div className="font-semibold flex items-center gap-1.5">
-                <span>{user?.displayName || "ERP Operator"}</span>
-                {isDeveloper && (
-                  <span className="text-[9px] bg-primary/10 text-primary px-1 rounded font-mono font-bold">
-                    DEV
-                  </span>
-                )}
+              <div className="font-semibold truncate max-w-[120px]">
+                {currentUser?.displayName || "Operator"}
               </div>
-              <div className="text-[10px] text-on-surface-variant uppercase font-mono">
-                {user?.role || "Staff"} &bull; ID: {user?.userId || "N/A"}
+              <div className="text-[10px] text-on-surface-variant flex items-center gap-1">
+                <span
+                  className={`inline-block w-1.5 h-1.5 rounded-full ${
+                    currentUser?.role === "admin"
+                      ? "bg-primary"
+                      : "bg-secondary"
+                  }`}
+                ></span>
+                <span className="capitalize">
+                  {currentUser?.role === "admin" ? "Admin" : "Staff"}
+                </span>
               </div>
             </div>
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-64 bg-surface-container-lowest border border-outline-variant rounded-sm shadow-lg py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 mt-2 w-60 bg-surface-container-lowest border border-outline-variant rounded-sm shadow-xl py-2 z-50 text-xs animate-in fade-in zoom-in-95">
               <div className="px-3 py-2 border-b border-outline-variant">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-primary">{user?.displayName}</p>
-                  <span className="text-[9px] font-mono uppercase bg-surface-container px-1.5 py-0.5 rounded font-bold text-on-surface-variant">
-                    {user?.role}
+                  <p className="font-semibold text-primary truncate">
+                    {currentUser?.displayName || "User"}
+                  </p>
+                  <span
+                    className={`text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                      currentUser?.role === "admin"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-secondary-container text-on-secondary-container"
+                    }`}
+                  >
+                    {currentUser?.role || "user"}
                   </span>
                 </div>
-                <p className="text-on-surface-variant font-mono text-[11px] mt-0.5">{user?.email}</p>
-                <p className="text-on-surface-variant/80 font-mono text-[10px]">User ID: {user?.userId}</p>
+                <p className="text-[11px] text-on-surface-variant font-mono mt-0.5">
+                  @{currentUser?.userId}
+                </p>
+                {currentUser?.email && (
+                  <p className="text-[10px] text-on-surface-variant truncate">
+                    {currentUser.email}
+                  </p>
+                )}
               </div>
 
               <div className="py-1">
-                {isDeveloper && (
+                {isAdmin && (
                   <Link
                     href="/users"
                     onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-surface-container-low text-primary font-semibold"
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-surface-container-low text-primary font-medium"
                   >
-                    <Users className="w-3.5 h-3.5 text-primary" />
-                    <span>Developer User Console</span>
+                    <UserCog className="w-3.5 h-3.5" />
+                    <span>Manage Users (Admin)</span>
                   </Link>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    openChangePasswordModal();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface-container-low text-on-surface text-left cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-on-surface-variant" />
+                  <span>Change My Password</span>
+                </button>
+
+                <div className="border-t border-outline-variant my-1" />
+
                 <Link
                   href="/ledger"
                   onClick={() => setShowUserMenu(false)}
-                  className="block px-3 py-2 hover:bg-surface-container-low text-on-surface"
+                  className="block px-3 py-1.5 hover:bg-surface-container-low text-on-surface"
                 >
                   Party Accounts Khata
                 </Link>
                 <Link
                   href="/profit"
                   onClick={() => setShowUserMenu(false)}
-                  className="block px-3 py-2 hover:bg-surface-container-low text-on-surface"
+                  className="block px-3 py-1.5 hover:bg-surface-container-low text-on-surface"
                 >
                   Financial Summary
                 </Link>
-              </div>
 
-              <div className="pt-1 border-t border-outline-variant">
+                <div className="border-t border-outline-variant my-1" />
+
                 <button
                   type="button"
                   onClick={() => {
                     setShowUserMenu(false);
                     logout();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-error-container/20 text-error text-left cursor-pointer font-medium"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-error hover:bg-error-container/30 text-left cursor-pointer font-medium"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>

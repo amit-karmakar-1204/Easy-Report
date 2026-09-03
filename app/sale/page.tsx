@@ -19,9 +19,42 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
 import type { Invoice, PaymentType, SaleItem } from "@/lib/types";
+
+export interface PurchasedStockItem {
+  key: string;
+  id?: string;
+  sku?: string;
+  name: string;
+  company?: string;
+  batchNo?: string;
+  mrp: number;
+  purchaseRate: number;
+  currentStock: number;
+  totalPurchased: number;
+  totalSold: number;
+  unit: string;
+  packing?: string;
+  expiryDate?: string;
+}
+
+// Composite unique key ensuring same-name items with different company/batch/rate are never mixed together
+function getItemStockKey(item?: {
+  name?: string;
+  company?: string;
+  batchNo?: string;
+  purchaseRate?: number;
+  mrp?: number;
+}): string {
+  const n = (item?.name || "").toLowerCase().trim();
+  const c = (item?.company || "").toLowerCase().trim();
+  const b = (item?.batchNo || "").toLowerCase().trim();
+  const pr = Number(item?.purchaseRate || 0).toFixed(2);
+  const mrp = Number(item?.mrp || 0).toFixed(2);
+  return `${n}:::${c}:::${b}:::${pr}:::${mrp}`;
+}
 
 export default function ActiveBillingPage() {
   const _router = useRouter();
@@ -30,12 +63,11 @@ export default function ActiveBillingPage() {
   // Invoice state
   const [customerName, setCustomerName] = useState("Cash Customer");
   const [paymentType, setPaymentType] = useState<PaymentType>("cash");
-  const [invoiceDate, setInvoiceDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+  const [invoiceDate, setInvoiceDate] = useState("");
   const [invoiceNo, setInvoiceNo] = useState("INV-100001");
 
   useEffect(() => {
+    setInvoiceDate(new Date().toISOString().split("T")[0]);
     setInvoiceNo(`INV-${Math.floor(100000 + Math.random() * 900000)}`);
   }, []);
 
@@ -44,6 +76,11 @@ export default function ActiveBillingPage() {
 
   // Current item input row state
   const [itemName, setItemName] = useState("");
+  const [selectedStockItem, setSelectedStockItem] =
+    useState<PurchasedStockItem | null>(null);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
   const [itemBarcode, setItemBarcode] = useState("");
   const [itemQty, setItemQty] = useState<number>(1);
   const [itemRate, setItemRate] = useState<string>(""); // Represents MRP
@@ -59,48 +96,62 @@ export default function ActiveBillingPage() {
     null,
   );
 
-  // Dynamic real-time reconciliation of all purchased items and live stock
-  const purchasedItemsList = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        name: string;
-        sku?: string;
-        batchNo?: string;
-        mrp: number;
-        purchaseRate: number;
-        currentStock: number;
-        totalPurchased: number;
-        totalSold: number;
-        unit?: string;
-        company?: string;
-        packing?: string;
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsSearchDropdownOpen(false);
       }
-    >();
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-    // 1. Gather all items and quantities from Purchases
-    for (const pur of purchases) {
+  // Dynamic real-time reconciliation of all purchased items and live stock
+  // Differentiating each item by Name, Company, Batch, and Rates so stocks are never mixed
+  const purchasedItemsList = useMemo<PurchasedStockItem[]>(() => {
+    const map = new Map<string, PurchasedStockItem>();
+
+    // 1. Gather all items and quantities from Purchases safely
+    for (const pur of purchases || []) {
+      if (!pur || !Array.isArray(pur.items)) continue;
       for (const item of pur.items) {
-        const key = item.itemName.toLowerCase().trim();
+        if (!item || !item.itemName) continue;
+        const key = getItemStockKey({
+          name: item.itemName,
+          company: item.company,
+          batchNo: item.batchNo,
+          purchaseRate: Number(item.purchaseRate) || 0,
+          mrp: Number(item.mrp) || 0,
+        });
+
         if (!map.has(key)) {
           map.set(key, {
+            key,
             name: item.itemName,
-            sku: "",
-            batchNo: item.batchNo,
-            mrp: item.mrp || 0,
-            purchaseRate: item.purchaseRate || 0,
+            sku: item.batchNo || "",
+            batchNo: item.batchNo || "",
+            mrp: Number(item.mrp) || 0,
+            purchaseRate: Number(item.purchaseRate) || 0,
             currentStock: 0,
-            totalPurchased: item.qty || 0,
+            totalPurchased: Number(item.qty) || 0,
             totalSold: 0,
             unit: "Pcs",
-            company: item.company,
-            packing: item.packing,
+            company: item.company || "",
+            packing: item.packing || "",
+            expiryDate: item.expiryDate || "",
           });
         } else {
           const entry = map.get(key)!;
-          entry.totalPurchased += item.qty || 0;
-          if (item.mrp > 0) entry.mrp = item.mrp;
-          if (item.purchaseRate > 0) entry.purchaseRate = item.purchaseRate;
+          entry.totalPurchased += Number(item.qty) || 0;
+          if (Number(item.mrp) > 0) entry.mrp = Number(item.mrp);
+          if (Number(item.purchaseRate) > 0)
+            entry.purchaseRate = Number(item.purchaseRate);
           if (item.batchNo) entry.batchNo = item.batchNo;
           if (item.company && !entry.company) entry.company = item.company;
           if (item.packing && !entry.packing) entry.packing = item.packing;
@@ -108,41 +159,109 @@ export default function ActiveBillingPage() {
       }
     }
 
-    // 2. Merge Inventory items metadata
-    for (const inv of inventory) {
-      const key = inv.name.toLowerCase().trim();
+    // 2. Merge Inventory items metadata safely
+    for (const inv of inventory || []) {
+      if (!inv || !inv.name) continue;
+      const key = getItemStockKey({
+        name: inv.name,
+        company: inv.company,
+        batchNo: inv.batchNo,
+        purchaseRate: Number(inv.purchaseRate) || 0,
+        mrp: Number(inv.mrp || inv.salePrice) || 0,
+      });
+
       if (!map.has(key)) {
         map.set(key, {
+          key,
+          id: inv.id,
           name: inv.name,
-          sku: inv.sku,
-          batchNo: inv.batchNo,
-          mrp: inv.mrp || inv.salePrice || 0,
-          purchaseRate: inv.purchaseRate || 0,
-          currentStock: inv.currentStock || 0,
-          totalPurchased: 0,
+          sku: inv.sku || "",
+          batchNo: inv.batchNo || "",
+          mrp: Number(inv.mrp || inv.salePrice) || 0,
+          purchaseRate: Number(inv.purchaseRate) || 0,
+          currentStock: Number(inv.currentStock) || 0,
+          totalPurchased: Number(inv.currentStock) || 0,
           totalSold: 0,
           unit: inv.unit || "Pcs",
-          company: inv.company,
-          packing: inv.packing,
+          company: inv.company || "",
+          packing: inv.packing || "",
+          expiryDate: inv.expiryDate || "",
         });
       } else {
         const entry = map.get(key)!;
+        if (!entry.id && inv.id) entry.id = inv.id;
         if (!entry.sku && inv.sku) entry.sku = inv.sku;
-        if (!entry.mrp && inv.mrp) entry.mrp = inv.mrp;
+        if (!entry.mrp && (inv.mrp || inv.salePrice))
+          entry.mrp = Number(inv.mrp || inv.salePrice);
         if (!entry.purchaseRate && inv.purchaseRate)
-          entry.purchaseRate = inv.purchaseRate;
+          entry.purchaseRate = Number(inv.purchaseRate);
         if (!entry.company && inv.company) entry.company = inv.company;
         if (!entry.packing && inv.packing) entry.packing = inv.packing;
+        if (entry.currentStock === 0 && Number(inv.currentStock) > 0) {
+          entry.currentStock = Number(inv.currentStock);
+        }
       }
     }
 
-    // 3. Compute Total Sold from Invoices
-    for (const inv of invoices) {
+    // 3. Compute Total Sold from Invoices matching specific variant safely
+    for (const inv of invoices || []) {
+      if (!inv || !Array.isArray(inv.items)) continue;
       for (const item of inv.items) {
-        const key = item.itemName.toLowerCase().trim();
-        if (map.has(key)) {
-          const entry = map.get(key)!;
-          entry.totalSold += item.qty || 0;
+        if (!item || !item.itemName) continue;
+        const exactKey = getItemStockKey({
+          name: item.itemName,
+          company: item.company,
+          batchNo: item.batchNo,
+          purchaseRate: Number(item.purchaseRate) || 0,
+          mrp: Number(item.rate) || 0,
+        });
+
+        const qtySold = Number(item.qty) || 0;
+
+        if (map.has(exactKey)) {
+          map.get(exactKey)!.totalSold += qtySold;
+        } else {
+          let matched = false;
+          if (item.inventoryItemId) {
+            for (const entry of map.values()) {
+              if (entry.id === item.inventoryItemId) {
+                entry.totalSold += qtySold;
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched) {
+            for (const entry of map.values()) {
+              const sameName =
+                (entry.name || "").toLowerCase().trim() ===
+                (item.itemName || "").toLowerCase().trim();
+              const sameCompany =
+                !item.company ||
+                (entry.company || "").toLowerCase().trim() ===
+                  item.company.toLowerCase().trim();
+              const sameBatch =
+                !item.batchNo ||
+                (entry.batchNo || "").toLowerCase().trim() ===
+                  item.batchNo.toLowerCase().trim();
+              if (sameName && sameCompany && sameBatch) {
+                entry.totalSold += qtySold;
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched) {
+            for (const entry of map.values()) {
+              if (
+                (entry.name || "").toLowerCase().trim() ===
+                (item.itemName || "").toLowerCase().trim()
+              ) {
+                entry.totalSold += qtySold;
+                break;
+              }
+            }
+          }
         }
       }
     }
@@ -162,19 +281,36 @@ export default function ActiveBillingPage() {
     return Array.from(map.values());
   }, [inventory, purchases, invoices]);
 
+  // Search suggestions based on user query
+  const searchSuggestions = useMemo(() => {
+    if (!itemName.trim()) {
+      return purchasedItemsList.slice(0, 20);
+    }
+    const q = itemName.toLowerCase().trim();
+    return purchasedItemsList.filter(
+      (it) =>
+        (it.name || "").toLowerCase().includes(q) ||
+        (it.company?.toLowerCase().includes(q) ?? false) ||
+        (it.batchNo?.toLowerCase().includes(q) ?? false) ||
+        (it.sku?.toLowerCase().includes(q) ?? false),
+    );
+  }, [itemName, purchasedItemsList]);
+
   // Live stock match for currently entered/selected item
   const matchedInventoryItem = useMemo(() => {
+    if (selectedStockItem) return selectedStockItem;
     if (!itemName.trim()) return null;
     const trimmed = itemName.toLowerCase().trim();
 
-    const pur = purchasedItemsList.find(
-      (p) =>
-        p.name.toLowerCase().trim() === trimmed ||
-        (p.sku && p.sku.toLowerCase().trim() === trimmed) ||
-        (p.batchNo && p.batchNo.toLowerCase().trim() === trimmed),
+    return (
+      purchasedItemsList.find(
+        (p) =>
+          (p.name || "").toLowerCase().trim() === trimmed ||
+          (p.sku && p.sku.toLowerCase().trim() === trimmed) ||
+          (p.batchNo && p.batchNo.toLowerCase().trim() === trimmed),
+      ) || null
     );
-    return pur || null;
-  }, [itemName, purchasedItemsList]);
+  }, [selectedStockItem, itemName, purchasedItemsList]);
 
   // Live loss calculation for current input values
   const lossCalculation = useMemo(() => {
@@ -203,13 +339,30 @@ export default function ActiveBillingPage() {
     };
   }, [itemRate, itemDisc, itemQty, matchedInventoryItem]);
 
-  // Total quantity of currently selected item already staged in bill
+  // Total quantity of currently selected item already staged in bill (tracked per company & rate)
   const qtyAlreadyInBill = useMemo(() => {
     if (!matchedInventoryItem) return 0;
-    const key = matchedInventoryItem.name.toLowerCase().trim();
     return items
-      .filter((it) => it.itemName.toLowerCase().trim() === key)
-      .reduce((s, it) => s + it.qty, 0);
+      .filter((it) => {
+        if (it.inventoryItemId && matchedInventoryItem.id) {
+          return it.inventoryItemId === matchedInventoryItem.id;
+        }
+        const sameName =
+          (it.itemName || "").toLowerCase().trim() ===
+          (matchedInventoryItem.name || "").toLowerCase().trim();
+        const sameCompany =
+          (it.company || "").toLowerCase().trim() ===
+          (matchedInventoryItem.company || "").toLowerCase().trim();
+        const sameBatch =
+          (it.batchNo || "").toLowerCase().trim() ===
+          (matchedInventoryItem.batchNo || "").toLowerCase().trim();
+        const sameRate =
+          Math.abs(
+            (Number(it.rate) || 0) - (Number(matchedInventoryItem.mrp) || 0),
+          ) < 0.01;
+        return sameName && sameCompany && sameBatch && sameRate;
+      })
+      .reduce((s, it) => s + (Number(it.qty) || 0), 0);
   }, [matchedInventoryItem, items]);
 
   const liveAvailableStock = matchedInventoryItem
@@ -243,28 +396,25 @@ export default function ActiveBillingPage() {
   }, [showPrintModal]);
 
   // Quick select item from purchased items and auto-retrieve MRP
-  const handleItemSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectSuggestion = (item: PurchasedStockItem) => {
+    setSelectedStockItem(item);
+    setItemName(item.name);
+    setItemRate(item.mrp > 0 ? item.mrp.toString() : "");
+    setItemBarcode(item.sku || item.batchNo || "");
+    setIsSearchDropdownOpen(false);
+    setItemError(null);
+  };
+
+  const handleItemNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setItemName(val);
     setItemError(null);
+    setIsSearchDropdownOpen(true);
 
-    if (!val.trim()) {
+    if (selectedStockItem && val.trim() !== selectedStockItem.name.trim()) {
+      setSelectedStockItem(null);
       setItemRate("");
       setItemBarcode("");
-      return;
-    }
-
-    const found = purchasedItemsList.find(
-      (item) =>
-        item.name.toLowerCase() === val.toLowerCase().trim() ||
-        (item.sku && item.sku.toLowerCase() === val.toLowerCase().trim()) ||
-        (item.batchNo &&
-          item.batchNo.toLowerCase() === val.toLowerCase().trim()),
-    );
-
-    if (found) {
-      setItemRate(found.mrp > 0 ? found.mrp.toString() : "");
-      setItemBarcode(found.sku || found.batchNo || "");
     }
   };
 
@@ -278,39 +428,64 @@ export default function ActiveBillingPage() {
       return;
     }
 
-    // 1. Check if item has been purchased
-    const found = purchasedItemsList.find(
-      (item) =>
-        item.name.toLowerCase() === trimmedName.toLowerCase() ||
-        (item.sku && item.sku.toLowerCase() === trimmedName.toLowerCase()) ||
-        (item.batchNo &&
-          item.batchNo.toLowerCase() === trimmedName.toLowerCase()),
-    );
-
-    if (!found) {
-      setItemError(
-        `"${trimmedName}" has not been purchased yet. Please inward/purchase this product in the Purchase section before selling.`,
+    // Identify target item
+    let target = selectedStockItem;
+    if (!target) {
+      // Look for match in purchasedItemsList
+      const matchingVariants = purchasedItemsList.filter(
+        (p) =>
+          p.name.toLowerCase().trim() === trimmedName.toLowerCase() ||
+          (p.sku && p.sku.toLowerCase().trim() === trimmedName.toLowerCase()) ||
+          (p.batchNo &&
+            p.batchNo.toLowerCase().trim() === trimmedName.toLowerCase()),
       );
-      return;
+
+      if (matchingVariants.length === 0) {
+        setItemError(
+          `"${trimmedName}" has not been inwarded into stock. Please inward/purchase this product in the Purchase section before billing.`,
+        );
+        return;
+      }
+
+      if (matchingVariants.length > 1) {
+        setItemError(
+          `Multiple company options exist for "${trimmedName}". Please click and select your specific company/rate variant from the dropdown suggestions.`,
+        );
+        setIsSearchDropdownOpen(true);
+        return;
+      }
+
+      target = matchingVariants[0];
     }
 
-    // 2. Strict Stock Validation using reconciled available stock
-    const availableStock = found.currentStock;
+    // 2. Strict Stock Validation using reconciled available stock for this variant
+    const availableStock = target.currentStock;
 
     // Condition A: 0 or Negative Stock
     if (availableStock <= 0) {
       setItemError(
-        `Out of Stock: "${found.name}" has 0 ${found.unit || "units"} available in warehouse (Purchased: ${found.totalPurchased}, Sold: ${found.totalSold}). You cannot sell this item until new stock is inwarded in Purchase.`,
+        `Out of Stock: "${target.name}" (${target.company || "Standard"}) has 0 ${target.unit || "units"} available in warehouse. Total inwarded: ${target.totalPurchased}, Total sold: ${target.totalSold}.`,
       );
       return;
     }
 
-    // Condition B: Exceeding Available Stock
+    // Condition B: Exceeding Available Stock for this specific variant
     const existingInBillQty = items
-      .filter(
-        (it) =>
-          it.itemName.toLowerCase().trim() === found.name.toLowerCase().trim(),
-      )
+      .filter((it) => {
+        if (it.inventoryItemId && target.id) {
+          return it.inventoryItemId === target.id;
+        }
+        const sameName =
+          it.itemName.toLowerCase().trim() === target.name.toLowerCase().trim();
+        const sameCompany =
+          (it.company || "").toLowerCase().trim() ===
+          (target.company || "").toLowerCase().trim();
+        const sameBatch =
+          (it.batchNo || "").toLowerCase().trim() ===
+          (target.batchNo || "").toLowerCase().trim();
+        const sameRate = Math.abs(it.rate - target.mrp) < 0.01;
+        return sameName && sameCompany && sameBatch && sameRate;
+      })
       .reduce((sum, it) => sum + it.qty, 0);
 
     const qtyNum = itemQty > 0 ? itemQty : 1;
@@ -318,15 +493,15 @@ export default function ActiveBillingPage() {
     if (existingInBillQty + qtyNum > availableStock) {
       const remaining = Math.max(0, availableStock - existingInBillQty);
       setItemError(
-        `Insufficient Stock for "${found.name}": Available in warehouse: ${availableStock} ${found.unit || "units"} (Purchased: ${found.totalPurchased}, Sold: ${found.totalSold}, In this bill: ${existingInBillQty}). You entered ${qtyNum} units, which exceeds available stock by ${existingInBillQty + qtyNum - availableStock}. Max you can add is ${remaining}.`,
+        `Insufficient Stock for "${target.name} [${target.company || "Standard"}]": Available: ${availableStock} ${target.unit || "units"} (Already in this bill: ${existingInBillQty}). You entered ${qtyNum} units. Maximum you can add is ${remaining}.`,
       );
       return;
     }
 
     // 3. Price Validation
-    const mrpNum = parseFloat(itemRate) || found.mrp || 0;
+    const mrpNum = parseFloat(itemRate) || target.mrp || 0;
     if (mrpNum <= 0) {
-      setItemError(`Please enter a valid MRP for "${found.name}".`);
+      setItemError(`Please enter a valid MRP for "${target.name}".`);
       return;
     }
 
@@ -335,25 +510,29 @@ export default function ActiveBillingPage() {
 
     // 4. Check for Selling at a Loss (Warn and proceed)
     const effectivePrice = mrpNum * (1 - discNum / 100);
-    const purchaseCost = found.purchaseRate || 0;
+    const purchaseCost = target.purchaseRate || 0;
     if (purchaseCost > 0 && effectivePrice < purchaseCost) {
       const uLoss = purchaseCost - effectivePrice;
       setWarningFeedback(
-        `⚠️ Loss Warning: Added "${found.name}" below purchase cost (Loss: -₹${uLoss.toFixed(2)}/unit, -₹${(uLoss * qtyNum).toFixed(2)} total). Transaction proceeded.`,
+        `⚠️ Loss Warning: Added "${target.name} [${target.company || "Standard"}]" below purchase cost (Loss: -₹${uLoss.toFixed(2)}/unit, -₹${(uLoss * qtyNum).toFixed(2)} total). Transaction proceeded.`,
       );
       setTimeout(() => setWarningFeedback(null), 5000);
     }
 
     const newItem: SaleItem = {
-      id: `item-${Date.now()}`,
-      itemName: found.name,
+      id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      itemName: target.name,
+      company: target.company,
+      batchNo: target.batchNo,
+      packing: target.packing,
+      inventoryItemId: target.id,
       barcode:
         itemBarcode ||
-        found.sku ||
-        found.batchNo ||
+        target.sku ||
+        target.batchNo ||
         `BAR-${Math.floor(1000 + Math.random() * 9000)}`,
       qty: qtyNum,
-      rate: mrpNum, // Stores MRP as the unit rate
+      rate: mrpNum,
       discount: discNum,
       total: Math.round(lineTotal * 100) / 100,
       purchaseRate: purchaseCost,
@@ -363,11 +542,13 @@ export default function ActiveBillingPage() {
 
     // Reset item inputs
     setItemName("");
+    setSelectedStockItem(null);
     setItemBarcode("");
     setItemQty(1);
     setItemRate("");
     setItemDisc("0");
     setItemError(null);
+    setIsSearchDropdownOpen(false);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -393,9 +574,12 @@ export default function ActiveBillingPage() {
     ) {
       setItems([]);
       setItemName("");
+      setSelectedStockItem(null);
       setItemRate("");
+      setItemBarcode("");
       setItemError(null);
       setWarningFeedback(null);
+      setIsSearchDropdownOpen(false);
     }
   };
 
@@ -431,15 +615,28 @@ export default function ActiveBillingPage() {
       return;
     }
 
-    // Final verification against live reconciled stock
+    // Final verification against live reconciled stock for each variant
     for (const it of items) {
-      const match = purchasedItemsList.find(
-        (i) => i.name.toLowerCase().trim() === it.itemName.toLowerCase().trim(),
-      );
+      const match = purchasedItemsList.find((i) => {
+        if (it.inventoryItemId && i.id) {
+          return i.id === it.inventoryItemId;
+        }
+        const sameName =
+          i.name.toLowerCase().trim() === it.itemName.toLowerCase().trim();
+        const sameCompany =
+          !it.company ||
+          (i.company || "").toLowerCase().trim() ===
+            it.company.toLowerCase().trim();
+        const sameBatch =
+          !it.batchNo ||
+          (i.batchNo || "").toLowerCase().trim() ===
+            it.batchNo.toLowerCase().trim();
+        return sameName && sameCompany && sameBatch;
+      });
       const currentStock = match ? match.currentStock : 0;
       if (it.qty > currentStock) {
         alert(
-          `Cannot complete sale: Insufficient stock for "${it.itemName}". Available in warehouse: ${currentStock}, Bill Quantity: ${it.qty}. Please adjust bill quantities before proceeding.`,
+          `Cannot complete sale: Insufficient stock for "${it.itemName}${it.company ? ` [${it.company}]` : ""}". Available in warehouse: ${currentStock}, Bill Quantity: ${it.qty}. Please adjust bill quantities before proceeding.`,
         );
         return;
       }
@@ -609,9 +806,19 @@ export default function ActiveBillingPage() {
           <div className="text-xs font-bold text-primary uppercase tracking-wider">
             Add Sale Line Item
           </div>
-          {/* Live stock & purchase rate indicator for selected item */}
+          {/* Live stock & company & rate indicator for selected item */}
           {matchedInventoryItem && (
             <div className="flex items-center gap-2 text-xs flex-wrap">
+              {matchedInventoryItem.company && (
+                <span className="inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary border border-primary/20">
+                  Mfg: {matchedInventoryItem.company}
+                </span>
+              )}
+              {matchedInventoryItem.batchNo && (
+                <span className="text-[11px] font-mono text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant">
+                  Batch: {matchedInventoryItem.batchNo}
+                </span>
+              )}
               {liveAvailableStock > 0 ? (
                 <span
                   className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded text-[11px] ${
@@ -642,19 +849,36 @@ export default function ActiveBillingPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-          {/* Item Search box with Purchased Items suggestions */}
-          <div className="sm:col-span-5">
-            <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-              Purchased Item Name / Batch / SKU
-            </label>
+          {/* Item Search box with Purchased Items suggestions separated by Company & Rate */}
+          <div className="sm:col-span-5 relative" ref={searchContainerRef}>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+                Purchased Item / Company / Batch
+              </label>
+              {selectedStockItem && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedStockItem(null);
+                    setItemName("");
+                    setItemRate("");
+                    setItemBarcode("");
+                    setIsSearchDropdownOpen(true);
+                  }}
+                  className="text-[10px] text-primary hover:underline font-semibold cursor-pointer"
+                >
+                  Change Item
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
               <input
                 type="text"
-                list="purchasedItemsDatalist"
                 value={itemName}
-                onChange={handleItemSelect}
-                placeholder="Search or select purchased item..."
+                onChange={handleItemNameChange}
+                onFocus={() => setIsSearchDropdownOpen(true)}
+                placeholder="Search item name, company, or batch..."
                 className={`w-full pl-9 pr-3 py-2 border ${
                   itemError
                     ? "border-error focus:border-error focus:ring-error"
@@ -662,19 +886,86 @@ export default function ActiveBillingPage() {
                 } bg-surface-container-lowest text-xs text-on-surface focus:ring-1 outline-none rounded-sm transition-colors`}
               />
             </div>
-            <datalist id="purchasedItemsDatalist">
-              {purchasedItemsList.map((item, i) => (
-                <option
-                  key={`${item.name}-${item.batchNo || i}`}
-                  value={item.name}
-                >
-                  MRP: ₹{item.mrp.toFixed(2)} | Cost: ₹
-                  {item.purchaseRate.toFixed(2)} | Stock: {item.currentStock}{" "}
-                  {item.unit || "Pcs"}
-                  {item.batchNo ? ` | Batch: ${item.batchNo}` : ""}
-                </option>
-              ))}
-            </datalist>
+
+            {/* Interactive Dropdown displaying distinct Company variants and separated stocks */}
+            {isSearchDropdownOpen && searchSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-sm shadow-2xl z-50 divide-y divide-outline-variant animate-in fade-in">
+                <div className="px-3 py-1.5 bg-surface-container-low text-[10px] font-bold uppercase tracking-wider text-on-surface-variant flex justify-between items-center">
+                  <span>Available Stock by Company & Rate</span>
+                  <span>{searchSuggestions.length} variant(s)</span>
+                </div>
+                {searchSuggestions.map((item) => {
+                  const isSelected = selectedStockItem?.key === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(item)}
+                      className={`w-full text-left p-2.5 hover:bg-surface-container-high transition-colors flex items-center justify-between gap-3 cursor-pointer ${
+                        isSelected
+                          ? "bg-primary/5 border-l-2 border-primary"
+                          : ""
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-xs text-on-surface">
+                            {item.name}
+                          </span>
+                          {item.company ? (
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                              {item.company}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-on-surface-variant italic">
+                              (Standard)
+                            </span>
+                          )}
+                          {item.batchNo && (
+                            <span className="text-[10px] font-mono text-on-surface-variant bg-surface-container px-1 py-0.2 rounded">
+                              Bch: {item.batchNo}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-on-surface-variant flex items-center gap-3 mt-1">
+                          <span>
+                            MRP:{" "}
+                            <strong className="text-on-surface font-code">
+                              ₹{(Number(item.mrp) || 0).toFixed(2)}
+                            </strong>
+                          </span>
+                          <span>
+                            Cost:{" "}
+                            <span className="font-code">
+                              ₹{(Number(item.purchaseRate) || 0).toFixed(2)}
+                            </span>
+                          </span>
+                          {item.packing && (
+                            <span className="text-on-surface-variant/80">
+                              Pack: {item.packing}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${
+                            item.currentStock > 0
+                              ? "bg-secondary-container text-on-secondary-container"
+                              : "bg-error-container text-on-error-container"
+                          }`}
+                        >
+                          {item.currentStock > 0
+                            ? `${item.currentStock} ${item.unit} in stock`
+                            : "0 Stock"}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Quantity */}
@@ -758,23 +1049,31 @@ export default function ActiveBillingPage() {
               <div className="font-bold flex items-center gap-2">
                 <span>⚠️ Selling at a Loss Warning:</span>
                 <span className="text-[10px] bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.2 rounded font-code">
-                  -{lossCalculation.lossPercentage.toFixed(1)}% Margin
+                  -{(Number(lossCalculation.lossPercentage) || 0).toFixed(1)}%
+                  Margin
                 </span>
               </div>
               <p>
                 Selling price after <strong>{itemDisc}% discount</strong> is{" "}
                 <strong>
-                  ₹{lossCalculation.effectiveSellingPrice.toFixed(2)}
+                  ₹
+                  {(Number(lossCalculation.effectiveSellingPrice) || 0).toFixed(
+                    2,
+                  )}
                 </strong>
                 , which is lower than your purchase cost of{" "}
-                <strong>₹{lossCalculation.purchaseCost.toFixed(2)}</strong>. You
-                will incur a loss of{" "}
+                <strong>
+                  ₹{(Number(lossCalculation.purchaseCost) || 0).toFixed(2)}
+                </strong>
+                . You will incur a loss of{" "}
                 <strong className="text-error font-code">
-                  ₹{lossCalculation.unitLoss.toFixed(2)}/unit
+                  ₹{(Number(lossCalculation.unitLoss) || 0).toFixed(2)}/unit
                 </strong>{" "}
                 (Total loss:{" "}
-                <strong>₹{lossCalculation.totalLoss.toFixed(2)}</strong> for{" "}
-                {itemQty} pcs).
+                <strong>
+                  ₹{(Number(lossCalculation.totalLoss) || 0).toFixed(2)}
+                </strong>{" "}
+                for {itemQty} pcs).
               </p>
               <p className="text-[11px] opacity-80">
                 👉 You can still click <strong>ADD</strong> to proceed with the
@@ -866,14 +1165,29 @@ export default function ActiveBillingPage() {
                       </td>
                       <td className="py-2.5 px-3 font-medium text-on-surface">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span>{item.itemName}</span>
+                          <span className="font-semibold">{item.itemName}</span>
+                          {item.company && (
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                              {item.company}
+                            </span>
+                          )}
+                          {item.batchNo && (
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono text-on-surface-variant bg-surface-container border border-outline-variant">
+                              B: {item.batchNo}
+                            </span>
+                          )}
+                          {item.packing && (
+                            <span className="text-[10px] text-on-surface-variant">
+                              ({item.packing})
+                            </span>
+                          )}
                           {isItemLoss && (
                             <span
                               className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 rounded"
-                              title={`Purchased at ₹${item.purchaseRate?.toFixed(2)}, selling at ₹${effectiveUnitPrice.toFixed(2)}`}
+                              title={`Purchased at ₹${(Number(item.purchaseRate) || 0).toFixed(2)}, selling at ₹${(Number(effectiveUnitPrice) || 0).toFixed(2)}`}
                             >
                               <TrendingDown className="w-3 h-3 text-amber-600 shrink-0" />
-                              Loss: -₹{itemUnitLoss.toFixed(2)}/u
+                              Loss: -₹{(Number(itemUnitLoss) || 0).toFixed(2)}/u
                             </span>
                           )}
                         </div>
@@ -887,7 +1201,7 @@ export default function ActiveBillingPage() {
                         {item.qty}
                       </td>
                       <td className="py-2.5 px-3 text-right font-code text-on-surface">
-                        ₹{item.rate.toFixed(2)}
+                        ₹{(Number(item.rate) || 0).toFixed(2)}
                       </td>
                       <td
                         className={`py-2.5 px-3 text-right font-code ${
@@ -896,10 +1210,10 @@ export default function ActiveBillingPage() {
                             : "text-on-surface"
                         }`}
                       >
-                        {item.discount.toFixed(1)}%
+                        {(Number(item.discount) || 0).toFixed(1)}%
                       </td>
                       <td className="py-2.5 px-3 text-right font-code font-bold text-on-surface">
-                        ₹{item.total.toFixed(2)}
+                        ₹{(Number(item.total) || 0).toFixed(2)}
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <button
@@ -1091,18 +1405,30 @@ export default function ActiveBillingPage() {
                 <div className="border-t border-b border-outline-variant py-2 space-y-1">
                   {lastSavedInvoice.items.map((it: SaleItem) => (
                     <div
-                      key={it.id || it.itemName}
-                      className="flex justify-between items-center py-0.5 text-[11px]"
+                      key={
+                        it.id || `${it.itemName}-${it.company}-${it.batchNo}`
+                      }
+                      className="flex justify-between items-start py-1 text-[11px] border-b border-outline-variant/30 last:border-0"
                     >
-                      <span className="truncate pr-2">
-                        {it.itemName}{" "}
-                        <span className="text-on-surface-variant">
-                          x{it.qty} @ ₹{it.rate.toFixed(2)}
-                          {it.discount > 0 && ` (-${it.discount}%)`}
-                        </span>
-                      </span>
-                      <span className="font-semibold shrink-0">
-                        ₹{it.total.toFixed(2)}
+                      <div className="truncate pr-2">
+                        <div className="font-semibold text-on-surface">
+                          {it.itemName}
+                          {it.company && (
+                            <span className="text-primary font-bold text-[10px] ml-1.5">
+                              [{it.company}]
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-on-surface-variant">
+                          {it.batchNo && <span>Batch: {it.batchNo} • </span>}
+                          <span>
+                            {it.qty} pcs @ ₹{(Number(it.rate) || 0).toFixed(2)}
+                            {Number(it.discount) > 0 && ` (-${it.discount}%)`}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="font-semibold shrink-0 font-code">
+                        ₹{(Number(it.total) || 0).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -1111,15 +1437,21 @@ export default function ActiveBillingPage() {
                 <div className="space-y-1 text-right font-medium text-xs pt-1">
                   <div className="flex justify-between text-on-surface-variant">
                     <span>Subtotal:</span>
-                    <span>₹{lastSavedInvoice.subtotal.toFixed(2)}</span>
+                    <span>
+                      ₹{(Number(lastSavedInvoice.subtotal) || 0).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-on-surface-variant">
                     <span>Tax (10% GST):</span>
-                    <span>₹{lastSavedInvoice.tax.toFixed(2)}</span>
+                    <span>
+                      ₹{(Number(lastSavedInvoice.tax) || 0).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between font-bold text-sm text-primary pt-2 border-t border-outline-variant">
                     <span>Grand Total:</span>
-                    <span>₹{lastSavedInvoice.grandTotal.toFixed(2)}</span>
+                    <span>
+                      ₹{(Number(lastSavedInvoice.grandTotal) || 0).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>

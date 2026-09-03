@@ -188,6 +188,11 @@ export default function SaleModifyPage() {
     const newItem: SaleItem = {
       id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       itemName: matched ? matched.name : newItemName.trim(),
+      company: matched?.company,
+      batchNo: matched?.batchNo,
+      packing: matched?.packing,
+      inventoryItemId: matched?.id,
+      purchaseRate: matched?.purchaseRate,
       barcode: matched?.sku || `BAR-${Math.floor(1000 + Math.random() * 9000)}`,
       qty: qtyNum,
       rate: rateNum,
@@ -710,18 +715,30 @@ export default function SaleModifyPage() {
                             className="hover:bg-surface-container-low"
                           >
                             <td className="py-1.5 px-3">
-                              <input
-                                type="text"
-                                value={item.itemName}
-                                onChange={(e) =>
-                                  handleUpdateItem(
-                                    idx,
-                                    "itemName",
-                                    e.target.value,
-                                  )
-                                }
-                                className="w-full bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary outline-none font-medium py-0.5 text-xs"
-                              />
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <input
+                                  type="text"
+                                  value={item.itemName}
+                                  onChange={(e) =>
+                                    handleUpdateItem(
+                                      idx,
+                                      "itemName",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="flex-1 min-w-[120px] bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary outline-none font-medium py-0.5 text-xs"
+                                />
+                                {item.company && (
+                                  <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                                    {item.company}
+                                  </span>
+                                )}
+                                {item.batchNo && (
+                                  <span className="text-[10px] font-mono text-on-surface-variant bg-surface-container px-1 py-0.2 rounded">
+                                    B: {item.batchNo}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-1.5 px-2 text-right">
                               <input
