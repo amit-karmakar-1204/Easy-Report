@@ -281,36 +281,42 @@ export default function ActiveBillingPage() {
     return Array.from(map.values());
   }, [inventory, purchases, invoices]);
 
-  // Search suggestions based on user query
+  // In-stock items only: When stock is zero, do not show product in sale term
+  const inStockPurchasedItems = useMemo<PurchasedStockItem[]>(() => {
+    return purchasedItemsList.filter((item) => item.currentStock > 0);
+  }, [purchasedItemsList]);
+
+  // Search suggestions based on user query - strictly filtered to in-stock items only
   const searchSuggestions = useMemo(() => {
     if (!itemName.trim()) {
-      return purchasedItemsList.slice(0, 20);
+      return inStockPurchasedItems.slice(0, 20);
     }
     const q = itemName.toLowerCase().trim();
-    return purchasedItemsList.filter(
+    return inStockPurchasedItems.filter(
       (it) =>
         (it.name || "").toLowerCase().includes(q) ||
         (it.company?.toLowerCase().includes(q) ?? false) ||
         (it.batchNo?.toLowerCase().includes(q) ?? false) ||
         (it.sku?.toLowerCase().includes(q) ?? false),
     );
-  }, [itemName, purchasedItemsList]);
+  }, [itemName, inStockPurchasedItems]);
 
-  // Live stock match for currently entered/selected item
+  // Live stock match for currently entered/selected item (only matches in-stock products)
   const matchedInventoryItem = useMemo(() => {
-    if (selectedStockItem) return selectedStockItem;
+    if (selectedStockItem && selectedStockItem.currentStock > 0)
+      return selectedStockItem;
     if (!itemName.trim()) return null;
     const trimmed = itemName.toLowerCase().trim();
 
     return (
-      purchasedItemsList.find(
+      inStockPurchasedItems.find(
         (p) =>
           (p.name || "").toLowerCase().trim() === trimmed ||
           (p.sku && p.sku.toLowerCase().trim() === trimmed) ||
           (p.batchNo && p.batchNo.toLowerCase().trim() === trimmed),
       ) || null
     );
-  }, [selectedStockItem, itemName, purchasedItemsList]);
+  }, [selectedStockItem, itemName, inStockPurchasedItems]);
 
   // Live loss calculation for current input values
   const lossCalculation = useMemo(() => {
@@ -431,19 +437,35 @@ export default function ActiveBillingPage() {
     // Identify target item
     let target = selectedStockItem;
     if (!target) {
-      // Look for match in purchasedItemsList
-      const matchingVariants = purchasedItemsList.filter(
+      // Look for match in inStockPurchasedItems
+      const matchingVariants = inStockPurchasedItems.filter(
         (p) =>
-          p.name.toLowerCase().trim() === trimmedName.toLowerCase() ||
+          (p.name || "").toLowerCase().trim() === trimmedName.toLowerCase() ||
           (p.sku && p.sku.toLowerCase().trim() === trimmedName.toLowerCase()) ||
           (p.batchNo &&
             p.batchNo.toLowerCase().trim() === trimmedName.toLowerCase()),
       );
 
       if (matchingVariants.length === 0) {
-        setItemError(
-          `"${trimmedName}" has not been inwarded into stock. Please inward/purchase this product in the Purchase section before billing.`,
+        // Check if it exists in warehouse history with 0 stock
+        const zeroStockVariant = purchasedItemsList.find(
+          (p) =>
+            (p.name || "").toLowerCase().trim() === trimmedName.toLowerCase() ||
+            (p.sku &&
+              p.sku.toLowerCase().trim() === trimmedName.toLowerCase()) ||
+            (p.batchNo &&
+              p.batchNo.toLowerCase().trim() === trimmedName.toLowerCase()),
         );
+
+        if (zeroStockVariant) {
+          setItemError(
+            `Stock is zero: "${trimmedName}" (${zeroStockVariant.company || "Standard"}) has 0 available stock and cannot be added to the bill.`,
+          );
+        } else {
+          setItemError(
+            `"${trimmedName}" has not been inwarded into stock. Please inward/purchase this product in the Purchase section before billing.`,
+          );
+        }
         return;
       }
 

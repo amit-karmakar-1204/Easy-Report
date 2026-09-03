@@ -20,7 +20,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatINR, useERP } from "@/lib/store";
 import type {
   InventoryItem,
@@ -53,11 +53,31 @@ export default function StockInwardPage() {
 
   // Current item inputs
   const [itemName, setItemName] = useState("");
+  const [itemCompany, setItemCompany] = useState("");
+  const [itemPacking, setItemPacking] = useState("");
   const [batchNo, setBatchNo] = useState("");
   const [expiryDate, setExpiryDate] = useState("2028-12");
   const [purchaseRate, setPurchaseRate] = useState("");
   const [mrp, setMrp] = useState("");
   const [qty, setQty] = useState<number>(10);
+  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
+  const itemSearchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close item search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        itemSearchContainerRef.current &&
+        !itemSearchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsItemDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Staged items list
   const [stagedItems, setStagedItems] = useState<PurchaseItem[]>([]);
@@ -127,6 +147,7 @@ export default function StockInwardPage() {
   }, [parties, purchases]);
 
   // Combined product catalog (from Inventory + previous Purchase items)
+  // Preserving distinct companies and tracking all previously recorded batches & expiries
   const catalogSuggestions = useMemo(() => {
     const map = new Map<
       string,
@@ -141,48 +162,177 @@ export default function StockInwardPage() {
         unit?: string;
         batchNo?: string;
         expiryDate?: string;
+        batches: {
+          batchNo: string;
+          expiryDate: string;
+          purchaseRate: number;
+          mrp: number;
+        }[];
       }
     >();
 
-    // 1. From Inventory
-    for (const inv of inventory) {
-      const key = inv.name.toLowerCase().trim();
-      map.set(key, {
-        name: inv.name,
-        sku: inv.sku,
-        packing: inv.packing,
-        company: inv.company,
-        purchaseRate: inv.purchaseRate || 0,
-        mrp: inv.mrp || 0,
-        currentStock: inv.currentStock || 0,
-        unit: inv.unit || "Pcs",
-        batchNo: inv.batchNo,
-        expiryDate: inv.expiryDate,
-      });
+    // 1. From Inventory safely
+    for (const inv of inventory || []) {
+      if (!inv || !inv.name) continue;
+      const key = `${(inv.name || "").toLowerCase().trim()}:::${(inv.company || "").toLowerCase().trim()}`;
+      const expFormatted = inv.expiryDate ? inv.expiryDate.slice(0, 7) : "";
+
+      if (!map.has(key)) {
+        map.set(key, {
+          name: inv.name,
+          sku: inv.sku || "",
+          packing: inv.packing || "",
+          company: inv.company || "",
+          purchaseRate: Number(inv.purchaseRate) || 0,
+          mrp: Number(inv.mrp || inv.salePrice) || 0,
+          currentStock: Number(inv.currentStock) || 0,
+          unit: inv.unit || "Pcs",
+          batchNo: inv.batchNo || "",
+          expiryDate: expFormatted,
+          batches: inv.batchNo
+            ? [
+                {
+                  batchNo: inv.batchNo,
+                  expiryDate: expFormatted,
+                  purchaseRate: Number(inv.purchaseRate) || 0,
+                  mrp: Number(inv.mrp || inv.salePrice) || 0,
+                },
+              ]
+            : [],
+        });
+      } else {
+        const entry = map.get(key)!;
+        entry.currentStock += Number(inv.currentStock) || 0;
+        if (Number(inv.purchaseRate) > 0)
+          entry.purchaseRate = Number(inv.purchaseRate);
+        if (Number(inv.mrp) > 0) entry.mrp = Number(inv.mrp);
+        if (inv.packing && !entry.packing) entry.packing = inv.packing;
+        if (
+          inv.batchNo &&
+          !entry.batches.some(
+            (b) =>
+              b.batchNo.toLowerCase().trim() ===
+              inv.batchNo!.toLowerCase().trim(),
+          )
+        ) {
+          entry.batches.push({
+            batchNo: inv.batchNo,
+            expiryDate: expFormatted,
+            purchaseRate: Number(inv.purchaseRate) || 0,
+            mrp: Number(inv.mrp || inv.salePrice) || 0,
+          });
+        }
+      }
     }
 
-    // 2. From Purchases
-    for (const pur of purchases) {
+    // 2. From recorded Purchases safely
+    for (const pur of purchases || []) {
+      if (!pur || !Array.isArray(pur.items)) continue;
       for (const it of pur.items) {
-        const key = it.itemName.toLowerCase().trim();
+        if (!it || !it.itemName) continue;
+        const key = `${(it.itemName || "").toLowerCase().trim()}:::${(it.company || "").toLowerCase().trim()}`;
+        const expFormatted = it.expiryDate ? it.expiryDate.slice(0, 7) : "";
+
         if (!map.has(key)) {
           map.set(key, {
             name: it.itemName,
-            packing: it.packing,
-            company: it.company,
-            purchaseRate: it.purchaseRate || 0,
-            mrp: it.mrp || 0,
-            currentStock: it.qty || 0,
+            packing: it.packing || "",
+            company: it.company || "",
+            purchaseRate: Number(it.purchaseRate) || 0,
+            mrp: Number(it.mrp) || 0,
+            currentStock: Number(it.qty) || 0,
             unit: "Pcs",
-            batchNo: it.batchNo,
-            expiryDate: it.expiryDate,
+            batchNo: it.batchNo || "",
+            expiryDate: expFormatted,
+            batches: it.batchNo
+              ? [
+                  {
+                    batchNo: it.batchNo,
+                    expiryDate: expFormatted,
+                    purchaseRate: Number(it.purchaseRate) || 0,
+                    mrp: Number(it.mrp) || 0,
+                  },
+                ]
+              : [],
           });
+        } else {
+          const entry = map.get(key)!;
+          if (Number(it.purchaseRate) > 0)
+            entry.purchaseRate = Number(it.purchaseRate);
+          if (Number(it.mrp) > 0) entry.mrp = Number(it.mrp);
+          if (it.packing && !entry.packing) entry.packing = it.packing;
+          if (
+            it.batchNo &&
+            !entry.batches.some(
+              (b) =>
+                b.batchNo.toLowerCase().trim() ===
+                it.batchNo!.toLowerCase().trim(),
+            )
+          ) {
+            entry.batches.push({
+              batchNo: it.batchNo,
+              expiryDate: expFormatted,
+              purchaseRate: Number(it.purchaseRate) || 0,
+              mrp: Number(it.mrp) || 0,
+            });
+          }
         }
       }
     }
 
     return Array.from(map.values());
   }, [inventory, purchases]);
+
+  // Search suggestions for Inward Item entry based on user query
+  const itemSearchSuggestions = useMemo(() => {
+    if (!itemName.trim()) {
+      return catalogSuggestions.slice(0, 15);
+    }
+    const q = itemName.toLowerCase().trim();
+    return catalogSuggestions.filter(
+      (it) =>
+        (it.name || "").toLowerCase().includes(q) ||
+        (it.company || "").toLowerCase().includes(q) ||
+        (it.packing || "").toLowerCase().includes(q) ||
+        (it.sku && it.sku.toLowerCase().includes(q)) ||
+        it.batches.some((b) => b.batchNo.toLowerCase().includes(q)),
+    );
+  }, [itemName, catalogSuggestions]);
+
+  // Dynamically extract all recorded batches for the currently typed/selected item
+  const knownBatchesForCurrentItem = useMemo(() => {
+    if (!itemName.trim()) return [];
+    const clean = itemName.toLowerCase().trim();
+    const batchMap = new Map<
+      string,
+      {
+        batchNo: string;
+        expiryDate: string;
+        rate: number;
+        mrp: number;
+      }
+    >();
+
+    for (const cat of catalogSuggestions) {
+      if ((cat.name || "").toLowerCase().trim() === clean) {
+        for (const b of cat.batches) {
+          if (b.batchNo?.trim()) {
+            const bKey = b.batchNo.toLowerCase().trim();
+            if (!batchMap.has(bKey)) {
+              batchMap.set(bKey, {
+                batchNo: b.batchNo.trim(),
+                expiryDate: b.expiryDate,
+                rate: b.purchaseRate,
+                mrp: b.mrp,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return Array.from(batchMap.values());
+  }, [itemName, catalogSuggestions]);
 
   // Matched details of currently selected supplier
   const selectedSupplierDetails = useMemo(() => {
@@ -307,49 +457,109 @@ export default function StockInwardPage() {
     setTimeout(() => setBannerFeedback(null), 4500);
   };
 
-  // Auto-fill when Item Name changes / is selected
+  // Select an item from the suggestions catalog
+  const handleSelectCatalogSuggestion = (
+    item: (typeof catalogSuggestions)[0],
+  ) => {
+    setItemName(item.name);
+    setItemCompany(item.company || "");
+    setItemPacking(item.packing || "");
+    if (item.purchaseRate > 0) setPurchaseRate(item.purchaseRate.toString());
+    if (item.mrp > 0) setMrp(item.mrp.toString());
+
+    // Auto-fill latest recorded batch & expiry for this item
+    if (item.batches && item.batches.length > 0) {
+      const latestBatch = item.batches[item.batches.length - 1];
+      setBatchNo(latestBatch.batchNo);
+      if (latestBatch.expiryDate) {
+        setExpiryDate(latestBatch.expiryDate.slice(0, 7));
+      }
+    } else if (item.batchNo) {
+      setBatchNo(item.batchNo);
+      if (item.expiryDate) {
+        setExpiryDate(item.expiryDate.slice(0, 7));
+      }
+    }
+
+    setIsItemDropdownOpen(false);
+  };
+
+  // Auto-fill when Item Name changes / is typed
   const handleItemNameChange = (val: string) => {
     setItemName(val);
-    const trimmed = val.toLowerCase().trim();
-    if (!trimmed) return;
+    setIsItemDropdownOpen(true);
+    const clean = val.toLowerCase().trim();
+    if (!clean) return;
 
     const found = catalogSuggestions.find(
       (item) =>
-        item.name.toLowerCase().trim() === trimmed ||
-        (item.sku && item.sku.toLowerCase().trim() === trimmed),
+        (item.name || "").toLowerCase().trim() === clean ||
+        (item.sku && item.sku.toLowerCase().trim() === clean),
     );
 
     if (found) {
-      if (found.purchaseRate > 0) {
+      if (found.company && !itemCompany) setItemCompany(found.company);
+      if (found.packing && !itemPacking) setItemPacking(found.packing);
+      if (found.purchaseRate > 0 && !purchaseRate) {
         setPurchaseRate(found.purchaseRate.toString());
       }
-      if (found.mrp > 0) {
+      if (found.mrp > 0 && !mrp) {
         setMrp(found.mrp.toString());
       }
-      if (found.batchNo && !batchNo) {
+      if (found.batches && found.batches.length > 0 && !batchNo) {
+        const latest = found.batches[found.batches.length - 1];
+        setBatchNo(latest.batchNo);
+        if (latest.expiryDate) {
+          setExpiryDate(latest.expiryDate.slice(0, 7));
+        }
+      } else if (found.batchNo && !batchNo) {
         setBatchNo(found.batchNo);
-      }
-      if (found.expiryDate) {
-        setExpiryDate(found.expiryDate.slice(0, 7));
+        if (found.expiryDate) {
+          setExpiryDate(found.expiryDate.slice(0, 7));
+        }
       }
     }
   };
 
-  // Auto-fill when Batch No is typed/selected
+  // Auto-fill expiry when Batch No is typed or selected:
+  // "if same batch expiry will be same but editable"
   const handleBatchNoChange = (val: string) => {
     setBatchNo(val);
     const trimmedBatch = val.toLowerCase().trim();
     if (!trimmedBatch) return;
 
+    // Check if this batch exists for the current item
+    const matchedBatch = knownBatchesForCurrentItem.find(
+      (b) => b.batchNo.toLowerCase().trim() === trimmedBatch,
+    );
+
+    if (matchedBatch) {
+      if (matchedBatch.expiryDate) {
+        setExpiryDate(matchedBatch.expiryDate.slice(0, 7));
+      }
+      if (matchedBatch.rate > 0 && !purchaseRate) {
+        setPurchaseRate(matchedBatch.rate.toString());
+      }
+      if (matchedBatch.mrp > 0 && !mrp) {
+        setMrp(matchedBatch.mrp.toString());
+      }
+      return;
+    }
+
+    // Secondary search across all inventory & purchases
     const matchInventory = inventory.find(
       (inv) => inv.batchNo && inv.batchNo.toLowerCase().trim() === trimmedBatch,
     );
     if (matchInventory) {
       if (!itemName) setItemName(matchInventory.name);
-      if (matchInventory.purchaseRate > 0) {
+      if (matchInventory.company && !itemCompany)
+        setItemCompany(matchInventory.company);
+      if (matchInventory.packing && !itemPacking)
+        setItemPacking(matchInventory.packing);
+      if (matchInventory.purchaseRate > 0 && !purchaseRate) {
         setPurchaseRate(matchInventory.purchaseRate.toString());
       }
-      if (matchInventory.mrp > 0) {
+      if (matchInventory.mrp > 0 && !mrp) {
         setMrp(matchInventory.mrp.toString());
       }
       if (matchInventory.expiryDate) {
@@ -359,21 +569,22 @@ export default function StockInwardPage() {
     }
 
     for (const pur of purchases) {
-      const matchPurItem = pur.items.find(
-        (it) => it.batchNo && it.batchNo.toLowerCase().trim() === trimmedBatch,
-      );
-      if (matchPurItem) {
-        if (!itemName) setItemName(matchPurItem.itemName);
-        if (matchPurItem.purchaseRate > 0) {
-          setPurchaseRate(matchPurItem.purchaseRate.toString());
+      for (const it of pur.items || []) {
+        if (it.batchNo && it.batchNo.toLowerCase().trim() === trimmedBatch) {
+          if (!itemName) setItemName(it.itemName);
+          if (it.company && !itemCompany) setItemCompany(it.company);
+          if (it.packing && !itemPacking) setItemPacking(it.packing);
+          if (it.purchaseRate > 0 && !purchaseRate) {
+            setPurchaseRate(it.purchaseRate.toString());
+          }
+          if (it.mrp > 0 && !mrp) {
+            setMrp(it.mrp.toString());
+          }
+          if (it.expiryDate) {
+            setExpiryDate(it.expiryDate.slice(0, 7));
+          }
+          return;
         }
-        if (matchPurItem.mrp > 0) {
-          setMrp(matchPurItem.mrp.toString());
-        }
-        if (matchPurItem.expiryDate) {
-          setExpiryDate(matchPurItem.expiryDate.slice(0, 7));
-        }
-        break;
       }
     }
   };
@@ -393,6 +604,9 @@ export default function StockInwardPage() {
       (it) => it.name.toLowerCase().trim() === itemName.toLowerCase().trim(),
     );
 
+    const finalCompany = itemCompany.trim() || catalogMatch?.company || "";
+    const finalPacking = itemPacking.trim() || catalogMatch?.packing || "";
+
     const newItem: PurchaseItem = {
       id: `stg-${Date.now()}`,
       itemName: itemName.trim(),
@@ -403,16 +617,19 @@ export default function StockInwardPage() {
       mrp: mrpNum,
       qty: qtyNum,
       total: Math.round(total * 100) / 100,
-      packing: catalogMatch?.packing,
-      company: catalogMatch?.company,
+      packing: finalPacking,
+      company: finalCompany,
     };
 
     setStagedItems((prev) => [...prev, newItem]);
     setItemName("");
+    setItemCompany("");
+    setItemPacking("");
     setBatchNo("");
     setPurchaseRate("");
     setMrp("");
     setQty(10);
+    setIsItemDropdownOpen(false);
   };
 
   const handleRemoveStagedItem = (id: string) => {
@@ -624,8 +841,11 @@ export default function StockInwardPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-12 gap-3 items-end">
-          {/* Item Name with + Add Item Button */}
-          <div className="col-span-2 sm:col-span-4">
+          {/* Item Name with Suggestions Dropdown + Add Item Button */}
+          <div
+            className="col-span-2 sm:col-span-4 relative"
+            ref={itemSearchContainerRef}
+          >
             <div className="flex items-center justify-between mb-1">
               <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
                 Item Name / Description
@@ -638,27 +858,69 @@ export default function StockInwardPage() {
                 <Plus className="w-3 h-3" /> Add Item
               </button>
             </div>
-            <input
-              type="text"
-              list="stockProductsCatalogDatalist"
-              value={itemName}
-              onChange={(e) => handleItemNameChange(e.target.value)}
-              placeholder="Search product or click Add Item..."
-              className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
-            />
-            <datalist id="stockProductsCatalogDatalist">
-              {catalogSuggestions.map((item, idx) => (
-                <option key={`${item.name}-${idx}`} value={item.name}>
-                  {item.name}
-                  {item.company ? ` (${item.company})` : ""}
-                  {item.packing ? ` [Pkg: ${item.packing}]` : ""}
-                  {item.mrp > 0 ? ` - MRP: ₹${item.mrp.toFixed(2)}` : ""}
-                  {item.purchaseRate > 0
-                    ? ` | Rate: ₹${item.purchaseRate.toFixed(2)}`
-                    : ""}
-                </option>
-              ))}
-            </datalist>
+            <div className="relative">
+              <input
+                type="text"
+                value={itemName}
+                onChange={(e) => handleItemNameChange(e.target.value)}
+                onFocus={() => setIsItemDropdownOpen(true)}
+                placeholder="Search product from system..."
+                className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-sm transition-colors"
+              />
+            </div>
+
+            {/* Interactive suggestions dropdown */}
+            {isItemDropdownOpen && itemSearchSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 max-h-72 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-sm shadow-2xl z-50 divide-y divide-outline-variant animate-in fade-in">
+                <div className="px-3 py-1.5 bg-surface-container-low text-[10px] font-bold uppercase tracking-wider text-on-surface-variant flex justify-between items-center">
+                  <span>Existing Products in System</span>
+                  <span>{itemSearchSuggestions.length} found</span>
+                </div>
+                {itemSearchSuggestions.map((item, idx) => (
+                  <button
+                    key={`${item.name}-${item.company}-${idx}`}
+                    type="button"
+                    onClick={() => handleSelectCatalogSuggestion(item)}
+                    className="w-full text-left p-2 hover:bg-surface-container-high transition-colors flex flex-col gap-0.5 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-xs text-on-surface">
+                        {item.name}
+                      </span>
+                      {item.company && (
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                          {item.company}
+                        </span>
+                      )}
+                      {item.packing && (
+                        <span className="text-[10px] text-on-surface-variant">
+                          ({item.packing})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-on-surface-variant flex items-center gap-3">
+                      <span>
+                        Rate:{" "}
+                        <strong className="text-on-surface font-code">
+                          ₹{(Number(item.purchaseRate) || 0).toFixed(2)}
+                        </strong>
+                      </span>
+                      <span>
+                        MRP:{" "}
+                        <span className="font-code">
+                          ₹{(Number(item.mrp) || 0).toFixed(2)}
+                        </span>
+                      </span>
+                      {item.batches && item.batches.length > 0 && (
+                        <span className="text-primary font-mono text-[9px] bg-primary/5 px-1 py-0.2 rounded">
+                          {item.batches.length} batch(es) recorded
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Batch Code with Auto-match */}
@@ -675,7 +937,7 @@ export default function StockInwardPage() {
             />
           </div>
 
-          {/* Expiry Date */}
+          {/* Expiry Date (Fully Editable) */}
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Expiry Date
@@ -743,6 +1005,43 @@ export default function StockInwardPage() {
             </button>
           </div>
         </div>
+
+        {/* Helper chips for recorded batches of the selected item */}
+        {knownBatchesForCurrentItem.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap text-[11px] bg-surface-container-low p-2 rounded-xs border border-outline-variant/60 mt-2">
+            <span className="font-bold text-primary text-[10px] uppercase tracking-wider">
+              ⚡ Recorded Batches for {itemName}:
+            </span>
+            {knownBatchesForCurrentItem.map((b) => {
+              const isSelected =
+                batchNo.toLowerCase().trim() === b.batchNo.toLowerCase().trim();
+              return (
+                <button
+                  key={b.batchNo}
+                  type="button"
+                  onClick={() => {
+                    setBatchNo(b.batchNo);
+                    if (b.expiryDate) setExpiryDate(b.expiryDate.slice(0, 7));
+                    if (b.rate && !purchaseRate)
+                      setPurchaseRate(b.rate.toString());
+                    if (b.mrp && !mrp) setMrp(b.mrp.toString());
+                  }}
+                  className={`px-2 py-0.5 rounded text-[10px] font-code border transition-colors cursor-pointer ${
+                    isSelected
+                      ? "bg-primary text-on-primary border-primary font-bold shadow-xs"
+                      : "bg-surface-container hover:bg-surface-container-high border-outline-variant text-on-surface"
+                  }`}
+                  title={`Click to set Batch ${b.batchNo} and its expiry ${b.expiryDate || "N/A"} (both remain editable)`}
+                >
+                  {b.batchNo} {b.expiryDate ? `(Exp: ${b.expiryDate})` : ""}
+                </button>
+              );
+            })}
+            <span className="text-[10px] text-on-surface-variant italic ml-auto">
+              Click batch to auto-set expiry (both remain fully editable)
+            </span>
+          </div>
+        )}
       </form>
 
       {/* Staged Inventory Table */}
