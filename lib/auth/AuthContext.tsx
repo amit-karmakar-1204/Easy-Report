@@ -82,6 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
 
     async function initUsers() {
+      const defaultUsers = await buildInitialDefaultUsers();
+
       if (isConfigured) {
         // Subscribe to Firestore users collection
         const unsub = subscribeUsers(
@@ -89,16 +91,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!isMounted) return;
             if (firestoreUsers.length === 0) {
               // Seed default initial accounts to Firestore
-              const defaultUsers = await buildInitialDefaultUsers();
               await seedDefaultUsersToFirestore(defaultUsers);
               setUsers(defaultUsers);
             } else {
-              setUsers(firestoreUsers);
+              // Ensure default admin is present in candidate list
+              const hasAdmin = firestoreUsers.some(
+                (u) => (u.userId || "").toLowerCase() === "admin",
+              );
+              if (!hasAdmin) {
+                const adminDefault = defaultUsers.find(
+                  (u) => u.userId === "admin",
+                );
+                if (adminDefault) {
+                  setUsers([adminDefault, ...firestoreUsers]);
+                  createUserDoc(adminDefault).catch(console.warn);
+                } else {
+                  setUsers(firestoreUsers);
+                }
+              } else {
+                setUsers(firestoreUsers);
+              }
             }
             setIsLoading(false);
           },
           (err) => {
             console.error("Firestore users subscription error:", err);
+            // Fallback to default users on subscription error
+            setUsers(defaultUsers);
             setIsLoading(false);
           },
         );
@@ -113,17 +132,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length > 0) {
+              const hasAdmin = parsed.some(
+                (u: any) => (u.userId || "").toLowerCase() === "admin",
+              );
+              if (!hasAdmin) {
+                const adminDefault = defaultUsers.find(
+                  (u) => u.userId === "admin",
+                );
+                if (adminDefault) parsed.unshift(adminDefault);
+              }
               setUsers(parsed);
               setIsLoading(false);
               return;
             }
           }
           // Seed defaults in localStorage
-          const defaultUsers = await buildInitialDefaultUsers();
           setUsers(defaultUsers);
           localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(defaultUsers));
         } catch (e) {
           console.warn("Failed to load users from localStorage", e);
+          setUsers(defaultUsers);
         }
         setIsLoading(false);
       }
