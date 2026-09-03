@@ -10,7 +10,6 @@ import {
   FileSpreadsheet,
   FileText,
   HelpCircle,
-  Key,
   Loader2,
   Plus,
   Sparkles,
@@ -55,10 +54,6 @@ export default function ImportBillModal({
   // Text / JSON paste state
   const [pastedContent, setPastedContent] = useState("");
 
-  // Gemini API Key state
-  const [apiKey, setApiKey] = useState("");
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-
   // Clear previous items and inputs whenever the modal opens
   useEffect(() => {
     if (isOpen) {
@@ -69,21 +64,6 @@ export default function ImportBillModal({
       setIsProcessing(false);
     }
   }, [isOpen]);
-
-  // Load API key from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedKey = localStorage.getItem("gemini_api_key") || "";
-      setApiKey(savedKey);
-    }
-  }, []);
-
-  const handleSaveApiKey = (key: string) => {
-    setApiKey(key);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("gemini_api_key", key.trim());
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -197,19 +177,12 @@ export default function ImportBillModal({
           mimeType:
             file.type ||
             (file.name.endsWith(".pdf") ? "application/pdf" : "image/jpeg"),
-          apiKey: apiKey.trim() || undefined,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        if (data?.error === "MISSING_API_KEY") {
-          setShowApiKeyInput(true);
-          throw new Error(
-            "Google Gemini API Key is required to scan Image & PDF bills. Enter your API key below or paste the JSON text directly.",
-          );
-        }
         throw new Error(
           data?.message || "AI extraction failed for this document.",
         );
@@ -533,7 +506,7 @@ export default function ImportBillModal({
         {/* Modal Content */}
         <div className="p-4 overflow-y-auto space-y-4 flex-1">
           {/* Tabs */}
-          <div className="flex items-center justify-between border-b border-outline-variant pb-2">
+          <div className="flex items-center justify-start border-b border-outline-variant pb-2">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -560,60 +533,7 @@ export default function ImportBillModal({
                 <span>Paste JSON / CSV Text</span>
               </button>
             </div>
-
-            {/* API Key settings toggle */}
-            <button
-              type="button"
-              onClick={() => setShowApiKeyInput((prev) => !prev)}
-              className="text-[11px] text-on-surface-variant hover:text-primary flex items-center gap-1 cursor-pointer font-medium"
-              title="Configure Google Gemini API Key for image & PDF scanning"
-            >
-              <Key className="w-3 h-3 text-primary" />
-              <span>{apiKey ? "Gemini Key Configured" : "Add Gemini Key"}</span>
-            </button>
           </div>
-
-          {/* Optional API Key Input Banner */}
-          {showApiKeyInput && (
-            <div className="p-3 bg-surface-container-low border border-outline-variant rounded-sm text-xs space-y-2 animate-in fade-in">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-primary flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-primary" /> Google Gemini API
-                  Key (For Image & PDF Scanning)
-                </span>
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline text-[11px] font-semibold"
-                >
-                  Get free key from Google AI Studio &rarr;
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="password"
-                  placeholder="Paste your Gemini API key (AIzaSy...)"
-                  value={apiKey}
-                  onChange={(e) => handleSaveApiKey(e.target.value)}
-                  className="flex-1 px-3 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface font-code outline-none focus:border-primary"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKeyInput(false)}
-                  className="px-3 py-1.5 bg-primary text-on-primary text-xs font-bold rounded-sm cursor-pointer hover:opacity-90"
-                >
-                  Save
-                </button>
-              </div>
-              <p className="text-[10px] text-on-surface-variant">
-                Note: Excel (.xlsx, .xls) and CSV files are parsed 100% locally
-                in your browser without requiring an API key. An API key is only
-                needed for AI Vision scanning of camera photos, invoice
-                screenshots, and PDFs.
-              </p>
-            </div>
-          )}
 
           {/* Tab 1: File Upload */}
           {activeTab === "file" && (

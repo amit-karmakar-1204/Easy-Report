@@ -46,18 +46,18 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey =
-      clientApiKey?.trim() ||
       process.env.GEMINI_API_KEY?.trim() ||
-      process.env.NEXT_PUBLIC_GEMINI_API_KEY?.trim();
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY?.trim() ||
+      clientApiKey?.trim();
 
     if (!apiKey) {
       return NextResponse.json(
         {
           error: "MISSING_API_KEY",
           message:
-            "A Google Gemini API key is required to scan images and PDFs. Please provide your free Gemini API key or upload an Excel/CSV file instead.",
+            "GEMINI_API_KEY is not configured in the server environment (.env.local / Vercel Environment Variables). Please set GEMINI_API_KEY in your server environment to enable Image and PDF extraction.",
         },
-        { status: 400 },
+        { status: 500 },
       );
     }
 
