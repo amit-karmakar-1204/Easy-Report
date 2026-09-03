@@ -201,7 +201,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => handleQuickFill("admin", "Admin@123")}
+                onClick={() => handleQuickFill("admin", "Admin@2026")}
                 className="p-2 border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high rounded-sm text-left transition-colors cursor-pointer"
               >
                 <div className="flex items-center justify-between">
@@ -211,7 +211,7 @@ export default function LoginPage() {
                   </span>
                 </div>
                 <div className="text-[10px] text-on-surface-variant font-mono mt-0.5">
-                  admin / Admin@123
+                  admin / Admin@2026
                 </div>
               </button>
 

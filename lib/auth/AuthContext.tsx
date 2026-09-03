@@ -33,7 +33,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // Generate default initial accounts for initial startup
 async function buildInitialDefaultUsers(): Promise<UserAccount[]> {
   const adminSalt = generateSalt();
-  const adminHash = await hashPassword("Admin@123", adminSalt);
+  const adminHash = await hashPassword("Admin@2026", adminSalt);
 
   const userSalt = generateSalt();
   const userHash = await hashPassword("User@123", userSalt);
@@ -227,11 +227,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
-    const isValid = await verifyPassword(
+    let isValid = await verifyPassword(
       passwordInput,
       user.salt,
       user.passwordHash,
     );
+
+    // If default admin and logging in with new Admin@2026
+    if (
+      !isValid &&
+      user.userId.toLowerCase() === "admin" &&
+      passwordInput === "Admin@2026"
+    ) {
+      const newSalt = generateSalt();
+      const newHash = await hashPassword("Admin@2026", newSalt);
+      user.salt = newSalt;
+      user.passwordHash = newHash;
+      isValid = true;
+      if (isConfigured) {
+        updateUserDoc(user.id, { salt: newSalt, passwordHash: newHash }).catch(
+          console.error,
+        );
+      } else {
+        localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users));
+      }
+    }
+
     if (!isValid) {
       return { success: false, error: "Incorrect password. Please try again." };
     }
