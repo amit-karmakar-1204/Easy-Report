@@ -1093,8 +1093,8 @@ export default function StockInwardPage() {
 
       {/* Staged Inventory Table */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm flex flex-col min-h-[300px] overflow-hidden shadow-none">
-        <div className="p-3 border-b border-outline-variant bg-surface-container-low flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+          <div className="flex items-center gap-2">
             <h3 className="font-bold text-xs text-on-surface uppercase tracking-wider">
               Staged Inward Items
             </h3>
@@ -1104,19 +1104,9 @@ export default function StockInwardPage() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowImportModal(true)}
-              className="px-2.5 py-1 bg-surface-container-high hover:bg-primary hover:text-on-primary border border-outline-variant rounded text-xs font-bold text-on-surface flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5 text-primary" />
-              <span>Import Bill</span>
-            </button>
-            <span className="text-[11px] font-semibold text-on-surface-variant bg-surface border border-outline-variant px-2 py-0.5 rounded-xs">
-              {stagedItems.length} Items Pending Log
-            </span>
-          </div>
+          <span className="text-[11px] font-semibold text-on-surface-variant bg-surface border border-outline-variant px-2 py-0.5 rounded-xs">
+            {stagedItems.length} Items Pending Log
+          </span>
         </div>
 
         <div className="overflow-x-auto flex-1">
