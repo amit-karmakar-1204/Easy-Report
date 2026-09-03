@@ -59,6 +59,17 @@ export default function ImportBillModal({
   const [apiKey, setApiKey] = useState("");
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
+  // Clear previous items and inputs whenever the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setExtractedItems([]);
+      setPastedContent("");
+      setStatusText("");
+      setErrorMessage(null);
+      setIsProcessing(false);
+    }
+  }, [isOpen]);
+
   // Load API key from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -670,45 +681,13 @@ export default function ImportBillModal({
                 <label className="font-bold text-on-surface-variant uppercase text-[10px]">
                   Paste JSON Array or Tab-Separated / CSV Text
                 </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPastedContent(
-                      JSON.stringify(
-                        [
-                          {
-                            "Item Name": "Whole Wheat Atta",
-                            Packing: "5 kg",
-                            "Company / Mfr": "ITC Limited",
-                            "Purchase Rate (₹)": 210,
-                            "MRP (₹)": 240,
-                            QTY: 10,
-                          },
-                          {
-                            "Item Name": "Basmati Rice",
-                            Packing: "1 kg",
-                            "Company / Mfr": "Kohinoor Foods",
-                            "Purchase Rate (₹)": 135,
-                            "MRP (₹)": 165,
-                            QTY: 5,
-                          },
-                        ],
-                        null,
-                        2,
-                      ),
-                    )
-                  }
-                  className="text-[10px] text-primary hover:underline font-semibold cursor-pointer"
-                >
-                  Load Example JSON
-                </button>
               </div>
 
               <textarea
                 rows={6}
                 value={pastedContent}
                 onChange={(e) => setPastedContent(e.target.value)}
-                placeholder='[ { "Item Name": "...", "Packing": "...", "Company / Mfr": "...", "Purchase Rate (₹)": 150, "MRP (₹)": 180, "QTY": 10 } ]'
+                placeholder="Paste your JSON array or tabular invoice text here..."
                 className="w-full p-3 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs font-code text-on-surface focus:border-primary outline-none resize-none"
               />
 
