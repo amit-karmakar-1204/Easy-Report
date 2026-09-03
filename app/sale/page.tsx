@@ -586,8 +586,8 @@ export default function ActiveBillingPage() {
     0,
   );
   const totalEstimatedMargin = subtotal - totalLandingCost;
-  const tax = subtotal * 0.1; // 10% tax
-  const grandTotal = subtotal + tax;
+  const tax = 0;
+  const grandTotal = subtotal;
 
   const handleClear = () => {
     if (
@@ -1289,18 +1289,18 @@ export default function ActiveBillingPage() {
           <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-right self-end sm:self-auto">
             <div>
               <div className="text-[10px] font-bold text-on-surface-variant uppercase">
-                SUBTOTAL
+                ITEMS
               </div>
               <div className="text-xs font-code font-medium text-on-surface">
-                ₹ {subtotal.toFixed(2)}
+                {items.length} items ({items.reduce((s, it) => s + it.qty, 0)} units)
               </div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-on-surface-variant uppercase">
-                TAX (10%)
+                SUBTOTAL
               </div>
               <div className="text-xs font-code font-medium text-on-surface">
-                ₹ {tax.toFixed(2)}
+                ₹ {subtotal.toFixed(2)}
               </div>
             </div>
             <div className="pl-2 border-l border-outline-variant">
@@ -1400,9 +1400,6 @@ export default function ActiveBillingPage() {
                   <div className="text-[10px] text-on-surface-variant">
                     Warehouse Alpha, Sector-4 Industrial Area
                   </div>
-                  <div className="text-[10px] text-on-surface-variant">
-                    GSTIN: 07AAAAA0000A1Z5
-                  </div>
                 </div>
 
                 <div className="flex justify-between text-[11px] py-1 border-b border-outline-variant/60">
@@ -1465,12 +1462,6 @@ export default function ActiveBillingPage() {
                     <span>Subtotal:</span>
                     <span>
                       ₹{(Number(lastSavedInvoice.subtotal) || 0).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-on-surface-variant">
-                    <span>Tax (10% GST):</span>
-                    <span>
-                      ₹{(Number(lastSavedInvoice.tax) || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between font-bold text-sm text-primary pt-2 border-t border-outline-variant">

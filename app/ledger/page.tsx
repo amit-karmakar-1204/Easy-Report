@@ -712,7 +712,7 @@ export default function LedgerAccountBookPage() {
                     : "border-transparent text-on-surface-variant hover:text-primary"
                 }`}
               >
-                <ShieldCheck className="w-3.5 h-3.5" /> Tax & Credit Terms
+                <ShieldCheck className="w-3.5 h-3.5" /> Credit & Account Terms
               </button>
               <button
                 type="button"

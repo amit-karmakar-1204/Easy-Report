@@ -26,7 +26,7 @@ export interface Invoice {
   paymentType: PaymentType;
   items: SaleItem[];
   subtotal: number;
-  tax: number;
+  tax?: number;
   grandTotal: number;
   status: InvoiceStatus;
   createdAt: string;

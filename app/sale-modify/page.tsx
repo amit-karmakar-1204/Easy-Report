@@ -209,8 +209,8 @@ export default function SaleModifyPage() {
 
   // Calculations for edit modal
   const editSubtotal = editItems.reduce((s, it) => s + it.total, 0);
-  const editTax = editSubtotal * 0.1;
-  const editGrandTotal = editSubtotal + editTax;
+  const editTax = 0;
+  const editGrandTotal = editSubtotal;
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -888,14 +888,6 @@ export default function SaleModifyPage() {
                       </span>
                       <span className="font-semibold">
                         ₹{editSubtotal.toFixed(2)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-on-surface-variant block">
-                        Tax (10%):
-                      </span>
-                      <span className="font-semibold">
-                        ₹{editTax.toFixed(2)}
                       </span>
                     </div>
                     <div className="border-l border-outline-variant pl-3">

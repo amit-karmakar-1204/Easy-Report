@@ -58,7 +58,6 @@ export default function PerformanceReportPage() {
   const [poPriority, setPoPriority] = useState<
     "Standard" | "Urgent" | "Critical Restock"
   >("Urgent");
-  const [poGSTRate, setPoGSTRate] = useState<number>(18);
   const [poNotes, setPoNotes] = useState("");
   const [copiedRef, setCopiedRef] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,7 +135,6 @@ export default function PerformanceReportPage() {
 
     setPoZone(matched?.rackLocation || "Zone A - Bay 04");
     setPoPriority(item.reorderRequired ? "Critical Restock" : "Standard");
-    setPoGSTRate(18);
     setPoNotes("");
     setCopiedRef(false);
   };
@@ -188,9 +186,7 @@ export default function PerformanceReportPage() {
 
     setIsSubmitting(true);
     const rateNum = Math.max(0, parseFloat(poRate) || 10);
-    const subtotal = poQty * rateNum;
-    const tax = subtotal * (poGSTRate / 100);
-    const totalCost = subtotal + tax;
+    const totalCost = poQty * rateNum;
 
     // Log purchase inward record to ERP
     addPurchase({
@@ -255,9 +251,7 @@ export default function PerformanceReportPage() {
 
   // Calculated PO numbers & Live Analytics
   const unitRateNum = Math.max(0, parseFloat(poRate) || 0);
-  const calculatedPoSubtotal = poQty * unitRateNum;
-  const calculatedGST = calculatedPoSubtotal * (poGSTRate / 100);
-  const calculatedGrandTotal = calculatedPoSubtotal + calculatedGST;
+  const calculatedGrandTotal = poQty * unitRateNum;
   const projectedStockAfterPO = poItem ? poItem.currentStock + poQty : 0;
 
   const estimatedDailySales = poItem
@@ -940,23 +934,22 @@ export default function PerformanceReportPage() {
                       </div>
                     </div>
 
-                    {/* Rate & Tax Configuration */}
-                    <div className="sm:col-span-6 grid grid-cols-2 gap-2">
-                      <div>
+                    {/* Rate Configuration */}
+                    <div className="sm:col-span-6">
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1.5">
-                          Unit Rate (₹) <span className="text-error">*</span>
+                          Unit Purchase Rate (₹)
                         </label>
                         <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-xs">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-code text-xs">
                             ₹
                           </span>
                           <input
                             type="number"
                             step="0.01"
-                            min="0.01"
+                            min="0"
                             value={poRate}
                             onChange={(e) => setPoRate(e.target.value)}
-                            required
+                            placeholder="0.00"
                             className="w-full pl-6 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs font-code font-bold text-primary"
                           />
                         </div>
@@ -964,28 +957,6 @@ export default function PerformanceReportPage() {
                           Est. MRP: ₹{(unitRateNum * 1.3).toFixed(2)}
                         </span>
                       </div>
-
-                      <div>
-                        <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1.5">
-                          Tax / GST Rate
-                        </label>
-                        <select
-                          value={poGSTRate}
-                          onChange={(e) =>
-                            setPoGSTRate(parseInt(e.target.value, 10))
-                          }
-                          className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs font-medium text-on-surface"
-                        >
-                          <option value={18}>18% Standard GST</option>
-                          <option value={12}>12% GST</option>
-                          <option value={5}>5% GST</option>
-                          <option value={0}>0% Tax Exempt</option>
-                        </select>
-                        <span className="text-[10px] text-on-surface-variant block mt-1">
-                          Tax: {formatINR(calculatedGST)}
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -1000,12 +971,6 @@ export default function PerformanceReportPage() {
                         <span className="text-xl sm:text-2xl font-bold text-primary font-code">
                           {formatINR(calculatedGrandTotal)}
                         </span>
-                        {poGSTRate > 0 && (
-                          <span className="text-[10px] text-on-surface-variant">
-                            (Subtotal {formatINR(calculatedPoSubtotal)} +{" "}
-                            {poGSTRate}% GST)
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 bg-secondary-container/40 text-on-secondary-container px-2.5 py-1 rounded-xs border border-secondary/30">
