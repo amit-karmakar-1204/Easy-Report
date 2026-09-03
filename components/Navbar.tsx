@@ -26,13 +26,11 @@ import { useERP } from "@/lib/store";
 interface NavbarProps {
   onToggleMobileSidebar: () => void;
   isMobileSidebarOpen: boolean;
-  onOpenShortcutsModal?: () => void;
 }
 
 export function Navbar({
   onToggleMobileSidebar,
   isMobileSidebarOpen,
-  onOpenShortcutsModal,
 }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
@@ -181,34 +179,13 @@ export function Navbar({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search Customer, Invoice #, SKU, or Batch..."
-            className="w-full pl-9 pr-16 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+            className="w-full pl-9 pr-3 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
           />
-          <div className="absolute right-2.5 flex items-center gap-1 pointer-events-none">
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-on-surface-variant/80 bg-surface-container border border-outline-variant/60 rounded">
-              Ctrl+K
-            </kbd>
-          </div>
         </div>
       </form>
 
       {/* Right Action Icons */}
       <div className="flex items-center gap-2">
-        {/* Keyboard Shortcuts Trigger Button */}
-        {onOpenShortcutsModal && (
-          <button
-            type="button"
-            onClick={onOpenShortcutsModal}
-            title="Keyboard Shortcuts Guide (Press Shift+? or F1)"
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-sm border border-outline-variant transition-colors cursor-pointer"
-          >
-            <Keyboard className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden lg:inline font-medium">Hotkeys</span>
-            <kbd className="hidden lg:inline text-[9px] font-mono font-bold bg-surface-container-highest px-1 py-0.2 rounded border border-outline-variant">
-              ?
-            </kbd>
-          </button>
-        )}
-
         {/* Firebase Cloud Status Indicator */}
         <div className="relative" ref={cloudModalRef}>
           <button

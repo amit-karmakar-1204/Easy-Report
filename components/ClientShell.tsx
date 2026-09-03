@@ -7,23 +7,18 @@ import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ERPProvider } from "@/lib/store";
 import { ChangePasswordModal } from "./ChangePasswordModal";
-import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
-import { useGlobalKeyboardShortcuts } from "@/hooks/useGlobalKeyboardShortcuts";
+import { useArrowKeyNavigation } from "@/hooks/useArrowKeyNavigation";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Register global keyboard navigation & hotkeys
-  useGlobalKeyboardShortcuts({
-    onToggleShortcutsModal: () => setIsShortcutsModalOpen((prev) => !prev),
-    onToggleSidebar: () => setIsMobileSidebarOpen((prev) => !prev),
-  });
+  // Register arrow keys navigation (↑ ↓ ← →), button press animation, and Esc as back
+  useArrowKeyNavigation();
 
   // Route guard: if not authenticated and not on /login, redirect to /login
   useEffect(() => {
@@ -74,7 +69,6 @@ function ShellContent({ children }: { children: React.ReactNode }) {
       <Navbar
         isMobileSidebarOpen={isMobileSidebarOpen}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
       />
       <div className="flex flex-1 pt-16">
         <Sidebar
@@ -86,10 +80,23 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <ChangePasswordModal />
-      <KeyboardShortcutsModal
-        isOpen={isShortcutsModalOpen}
-        onClose={() => setIsShortcutsModalOpen(false)}
-      />
+
+      {/* Floating Keyboard Navigation Indicator */}
+      <div className="fixed bottom-3 right-4 z-40 bg-surface-container-highest/90 border border-outline-variant/80 text-on-surface shadow-lg backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium hidden sm:flex items-center gap-2 select-none pointer-events-none transition-all animate-in fade-in slide-in-from-bottom-2">
+        <span className="flex items-center gap-0.5 font-mono text-[11px] font-bold text-primary">
+          <span className="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded">↑</span>
+          <span className="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded">↓</span>
+          <span className="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded">←</span>
+          <span className="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded">→</span>
+        </span>
+        <span className="text-[11px] text-on-surface-variant font-medium">Traverse</span>
+        <span className="text-outline-variant">•</span>
+        <span className="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded font-mono text-[11px] font-bold text-primary">↵ Enter</span>
+        <span className="text-[11px] text-on-surface-variant font-medium">Select</span>
+        <span className="text-outline-variant">•</span>
+        <span className="px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded font-mono text-[11px] font-bold text-primary">Esc</span>
+        <span className="text-[11px] text-on-surface-variant font-medium">Back</span>
+      </div>
     </div>
   );
 }
