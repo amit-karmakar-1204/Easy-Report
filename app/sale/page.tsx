@@ -770,7 +770,11 @@ export default function ActiveBillingPage() {
               <datalist id="partyList">
                 <option value="Cash Customer" />
                 {parties.map((p) => (
-                  <option key={p.id} value={p.name} />
+                  <option
+                    key={p.id}
+                    value={p.name}
+                    label={`${p.partyType || "Party"}${p.phone ? ` - 📞 ${p.phone}${p.alternatePhone ? `, ${p.alternatePhone}` : ""}` : ""}`}
+                  />
                 ))}
               </datalist>
             </div>

@@ -90,6 +90,8 @@ export default function StockInwardPage() {
   const [newSupplierName, setNewSupplierName] = useState("");
   const [newSupplierAddress, setNewSupplierAddress] = useState("");
   const [newSupplierPhone, setNewSupplierPhone] = useState("");
+  const [newSupplierAlternatePhone, setNewSupplierAlternatePhone] =
+    useState("");
   const [newSupplierLicense, setNewSupplierLicense] = useState("");
   const [newSupplierGst, setNewSupplierGst] = useState("");
 
@@ -114,6 +116,7 @@ export default function StockInwardPage() {
       {
         name: string;
         phone?: string;
+        alternatePhone?: string;
         address?: string;
         gstin?: string;
         shopLicense?: string;
@@ -126,6 +129,7 @@ export default function StockInwardPage() {
         map.set(p.name.toLowerCase().trim(), {
           name: p.name,
           phone: p.phone,
+          alternatePhone: p.alternatePhone,
           address: p.address,
           gstin: p.gstin,
           shopLicense: p.shopLicense,
@@ -374,6 +378,7 @@ export default function StockInwardPage() {
     setNewSupplierName(supplierName.trim());
     setNewSupplierAddress("");
     setNewSupplierPhone("");
+    setNewSupplierAlternatePhone("");
     setNewSupplierLicense("");
     setNewSupplierGst("");
     setShowAddSupplierModal(true);
@@ -388,11 +393,27 @@ export default function StockInwardPage() {
       return;
     }
 
+    const cleanPhone = newSupplierPhone.replace(/\D/g, "").slice(0, 10);
+    const cleanAltPhone = newSupplierAlternatePhone
+      .replace(/\D/g, "")
+      .slice(0, 10);
+
+    if (newSupplierPhone.trim() && cleanPhone.length !== 10) {
+      alert("Supplier primary phone number must be exactly 10 digits.");
+      return;
+    }
+
+    if (newSupplierAlternatePhone.trim() && cleanAltPhone.length !== 10) {
+      alert("Supplier alternate phone number must be exactly 10 digits.");
+      return;
+    }
+
     addParty({
       name: trimmedName,
       distributorId: `SUP-${Math.floor(1000 + Math.random() * 9000)}`,
       partyType: "vendor",
-      phone: newSupplierPhone.trim(),
+      phone: cleanPhone,
+      alternatePhone: cleanAltPhone,
       address: newSupplierAddress.trim(),
       shopLicense: newSupplierLicense.trim(),
       gstin: newSupplierGst.trim().toUpperCase(),
@@ -1226,17 +1247,60 @@ export default function StockInwardPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                  3. Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={newSupplierPhone}
-                  onChange={(e) => setNewSupplierPhone(e.target.value)}
-                  placeholder="e.g. +91 98765 43210"
-                  className="w-full px-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    3. Contact Phone (10 Digits)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={newSupplierPhone}
+                      onChange={(e) =>
+                        setNewSupplierPhone(
+                          e.target.value.replace(/\D/g, "").slice(0, 10),
+                        )
+                      }
+                      placeholder="10-digit number"
+                      className="w-full pl-11 pr-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code tracking-wider"
+                    />
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
+                    {newSupplierPhone.length}/10 digits
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    Alternate Phone (Optional - 10 Digits)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={newSupplierAlternatePhone}
+                      onChange={(e) =>
+                        setNewSupplierAlternatePhone(
+                          e.target.value.replace(/\D/g, "").slice(0, 10),
+                        )
+                      }
+                      placeholder="Optional 10-digit number"
+                      className="w-full pl-11 pr-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code tracking-wider"
+                    />
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
+                    {newSupplierAlternatePhone.length > 0
+                      ? `${newSupplierAlternatePhone.length}/10 digits`
+                      : "Optional"}
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

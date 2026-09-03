@@ -405,7 +405,8 @@ export const defaultParties: PartyAccount[] = [
     id: "party-1",
     name: "Acme Corporation Ltd.",
     distributorId: "DIST-2026-089",
-    phone: "+91 98765 43210",
+    phone: "9876543210",
+    alternatePhone: "9876500001",
     outstandingBalance: 14500.0,
     asOfDate: "Aug 02, 2026",
     transactions: [
@@ -459,7 +460,7 @@ export const defaultParties: PartyAccount[] = [
     id: "party-2",
     name: "Stark Industries",
     distributorId: "DIST-2026-042",
-    phone: "+91 98111 22334",
+    phone: "9811122334",
     outstandingBalance: 8100.5,
     asOfDate: "Aug 02, 2026",
     transactions: [
@@ -486,7 +487,7 @@ export const defaultParties: PartyAccount[] = [
     id: "party-3",
     name: "Cyberdyne Systems",
     distributorId: "DIST-2026-101",
-    phone: "+91 99223 34455",
+    phone: "9922334455",
     outstandingBalance: 99999.0,
     asOfDate: "Jul 25, 2026",
     transactions: [

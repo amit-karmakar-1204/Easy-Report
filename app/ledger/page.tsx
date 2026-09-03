@@ -72,6 +72,7 @@ export default function LedgerAccountBookPage() {
     "customer" | "distributor" | "vendor"
   >("distributor");
   const [editPhone, setEditPhone] = useState("");
+  const [editAlternatePhone, setEditAlternatePhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editGstin, setEditGstin] = useState("");
@@ -90,6 +91,7 @@ export default function LedgerAccountBookPage() {
     "customer" | "distributor" | "vendor"
   >("customer");
   const [newPhone, setNewPhone] = useState("");
+  const [newAlternatePhone, setNewAlternatePhone] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newGstin, setNewGstin] = useState("");
@@ -159,6 +161,7 @@ export default function LedgerAccountBookPage() {
     setEditDistributorId(currentParty.distributorId);
     setEditPartyType(currentParty.partyType || "distributor");
     setEditPhone(currentParty.phone || "");
+    setEditAlternatePhone(currentParty.alternatePhone || "");
     setEditEmail(currentParty.email || "");
     setEditAddress(currentParty.address || "");
     setEditGstin(currentParty.gstin || "");
@@ -173,6 +176,19 @@ export default function LedgerAccountBookPage() {
     e.preventDefault();
     if (!currentParty) return;
 
+    const cleanPhone = editPhone.replace(/\D/g, "").slice(0, 10);
+    const cleanAltPhone = editAlternatePhone.replace(/\D/g, "").slice(0, 10);
+
+    if (editPhone.trim() && cleanPhone.length !== 10) {
+      alert("Primary phone number must be exactly 10 digits.");
+      return;
+    }
+
+    if (editAlternatePhone.trim() && cleanAltPhone.length !== 10) {
+      alert("Alternate phone number must be exactly 10 digits.");
+      return;
+    }
+
     const balanceNum =
       parseFloat(editBalance) >= 0
         ? parseFloat(editBalance)
@@ -184,7 +200,8 @@ export default function LedgerAccountBookPage() {
       name: editName,
       distributorId: editDistributorId,
       partyType: editPartyType,
-      phone: editPhone,
+      phone: cleanPhone,
+      alternatePhone: cleanAltPhone,
       email: editEmail,
       address: editAddress,
       gstin: editGstin,
@@ -202,6 +219,19 @@ export default function LedgerAccountBookPage() {
     e.preventDefault();
     if (!newName.trim()) return;
 
+    const cleanPhone = newPhone.replace(/\D/g, "").slice(0, 10);
+    const cleanAltPhone = newAlternatePhone.replace(/\D/g, "").slice(0, 10);
+
+    if (newPhone.trim() && cleanPhone.length !== 10) {
+      alert("Primary phone number must be exactly 10 digits.");
+      return;
+    }
+
+    if (newAlternatePhone.trim() && cleanAltPhone.length !== 10) {
+      alert("Alternate phone number must be exactly 10 digits.");
+      return;
+    }
+
     const openingBal = parseFloat(newOpeningBalance) || 0;
     const creditLim = parseFloat(newCreditLimit) || 100000;
     const generatedDistId =
@@ -212,7 +242,8 @@ export default function LedgerAccountBookPage() {
       name: newName.trim(),
       distributorId: generatedDistId,
       partyType: newPartyType,
-      phone: newPhone.trim(),
+      phone: cleanPhone,
+      alternatePhone: cleanAltPhone,
       email: newEmail.trim(),
       address: newAddress.trim(),
       gstin: newGstin.trim(),
@@ -236,6 +267,7 @@ export default function LedgerAccountBookPage() {
     setNewDistributorId("");
     setNewPartyType("customer");
     setNewPhone("");
+    setNewAlternatePhone("");
     setNewEmail("");
     setNewAddress("");
     setNewGstin("");
@@ -373,10 +405,17 @@ export default function LedgerAccountBookPage() {
                 {currentParty.name}
               </h2>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-on-surface-variant">
-                {currentParty.phone && (
-                  <span className="flex items-center gap-1">
+                {(currentParty.phone || currentParty.alternatePhone) && (
+                  <span className="flex items-center gap-1 font-code">
                     <Phone className="w-3 h-3 text-on-surface-variant" />{" "}
-                    {currentParty.phone}
+                    {currentParty.phone || ""}
+                    {currentParty.alternatePhone && (
+                      <span className="text-on-surface-variant/80 font-normal">
+                        {currentParty.phone
+                          ? ` / ${currentParty.alternatePhone}`
+                          : currentParty.alternatePhone}
+                      </span>
+                    )}
                   </span>
                 )}
                 {currentParty.email && (
@@ -761,29 +800,70 @@ export default function LedgerAccountBookPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Contact Phone Number
+                          Primary Phone (10 Digits)
                         </label>
-                        <input
-                          type="text"
-                          placeholder="+91 98765 43210"
-                          value={editPhone}
-                          onChange={(e) => setEditPhone(e.target.value)}
-                          className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code"
-                        />
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            maxLength={10}
+                            placeholder="10-digit number"
+                            value={editPhone}
+                            onChange={(e) =>
+                              setEditPhone(
+                                e.target.value.replace(/\D/g, "").slice(0, 10),
+                              )
+                            }
+                            className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
+                          />
+                        </div>
+                        <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
+                          {editPhone.length}/10 digits
+                        </span>
                       </div>
 
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Email Address
+                          Alternate Phone (Optional - 10 Digits)
                         </label>
-                        <input
-                          type="email"
-                          placeholder="accounts@company.com"
-                          value={editEmail}
-                          onChange={(e) => setEditEmail(e.target.value)}
-                          className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface"
-                        />
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            maxLength={10}
+                            placeholder="Optional 10-digit number"
+                            value={editAlternatePhone}
+                            onChange={(e) =>
+                              setEditAlternatePhone(
+                                e.target.value.replace(/\D/g, "").slice(0, 10),
+                              )
+                            }
+                            className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
+                          />
+                        </div>
+                        <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
+                          {editAlternatePhone.length > 0
+                            ? `${editAlternatePhone.length}/10 digits`
+                            : "Optional"}
+                        </span>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="accounts@company.com"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface"
+                      />
                     </div>
 
                     <div>
@@ -1434,29 +1514,70 @@ export default function LedgerAccountBookPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Contact Phone Number
+                      Primary Phone (10 Digits)
                     </label>
-                    <input
-                      type="text"
-                      placeholder="+91 98765 00000"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        placeholder="10-digit number"
+                        value={newPhone}
+                        onChange={(e) =>
+                          setNewPhone(
+                            e.target.value.replace(/\D/g, "").slice(0, 10),
+                          )
+                        }
+                        className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
+                      />
+                    </div>
+                    <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
+                      {newPhone.length}/10 digits
+                    </span>
                   </div>
 
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Email Address
+                      Alternate Phone (Optional - 10 Digits)
                     </label>
-                    <input
-                      type="email"
-                      placeholder="billing@party.com"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        placeholder="Optional 10-digit number"
+                        value={newAlternatePhone}
+                        onChange={(e) =>
+                          setNewAlternatePhone(
+                            e.target.value.replace(/\D/g, "").slice(0, 10),
+                          )
+                        }
+                        className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
+                      />
+                    </div>
+                    <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
+                      {newAlternatePhone.length > 0
+                        ? `${newAlternatePhone.length}/10 digits`
+                        : "Optional"}
+                    </span>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="billing@party.com"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    className="w-full px-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

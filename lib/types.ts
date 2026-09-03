@@ -91,6 +91,7 @@ export interface PartyAccount {
   distributorId: string;
   partyType?: "customer" | "distributor" | "vendor";
   phone?: string;
+  alternatePhone?: string;
   email?: string;
   address?: string;
   gstin?: string;
