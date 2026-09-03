@@ -1250,7 +1250,7 @@ export default function StockInwardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                    3. Contact Phone (10 Digits)
+                    3. Contact Phone
                   </label>
                   <div className="relative">
                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
@@ -1265,18 +1265,15 @@ export default function StockInwardPage() {
                           e.target.value.replace(/\D/g, "").slice(0, 10),
                         )
                       }
-                      placeholder="10-digit number"
+                      placeholder="Phone number"
                       className="w-full pl-11 pr-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code tracking-wider"
                     />
                   </div>
-                  <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
-                    {newSupplierPhone.length}/10 digits
-                  </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                    Alternate Phone (Optional - 10 Digits)
+                    Alternate Phone (Optional)
                   </label>
                   <div className="relative">
                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
@@ -1291,15 +1288,10 @@ export default function StockInwardPage() {
                           e.target.value.replace(/\D/g, "").slice(0, 10),
                         )
                       }
-                      placeholder="Optional 10-digit number"
+                      placeholder="Optional number"
                       className="w-full pl-11 pr-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-sm text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors font-code tracking-wider"
                     />
                   </div>
-                  <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
-                    {newSupplierAlternatePhone.length > 0
-                      ? `${newSupplierAlternatePhone.length}/10 digits`
-                      : "Optional"}
-                  </span>
                 </div>
               </div>
 

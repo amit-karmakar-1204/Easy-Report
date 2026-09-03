@@ -800,7 +800,7 @@ export default function LedgerAccountBookPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Primary Phone (10 Digits)
+                          Primary Phone
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
@@ -809,7 +809,7 @@ export default function LedgerAccountBookPage() {
                           <input
                             type="tel"
                             maxLength={10}
-                            placeholder="10-digit number"
+                            placeholder="Phone number"
                             value={editPhone}
                             onChange={(e) =>
                               setEditPhone(
@@ -819,14 +819,11 @@ export default function LedgerAccountBookPage() {
                             className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
                           />
                         </div>
-                        <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
-                          {editPhone.length}/10 digits
-                        </span>
                       </div>
 
                       <div>
                         <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                          Alternate Phone (Optional - 10 Digits)
+                          Alternate Phone (Optional)
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
@@ -835,7 +832,7 @@ export default function LedgerAccountBookPage() {
                           <input
                             type="tel"
                             maxLength={10}
-                            placeholder="Optional 10-digit number"
+                            placeholder="Optional number"
                             value={editAlternatePhone}
                             onChange={(e) =>
                               setEditAlternatePhone(
@@ -845,11 +842,6 @@ export default function LedgerAccountBookPage() {
                             className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
                           />
                         </div>
-                        <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
-                          {editAlternatePhone.length > 0
-                            ? `${editAlternatePhone.length}/10 digits`
-                            : "Optional"}
-                        </span>
                       </div>
                     </div>
 
@@ -1514,7 +1506,7 @@ export default function LedgerAccountBookPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Primary Phone (10 Digits)
+                      Primary Phone
                     </label>
                     <div className="relative">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
@@ -1523,7 +1515,7 @@ export default function LedgerAccountBookPage() {
                       <input
                         type="tel"
                         maxLength={10}
-                        placeholder="10-digit number"
+                        placeholder="Phone number"
                         value={newPhone}
                         onChange={(e) =>
                           setNewPhone(
@@ -1533,14 +1525,11 @@ export default function LedgerAccountBookPage() {
                         className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
                       />
                     </div>
-                    <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
-                      {newPhone.length}/10 digits
-                    </span>
                   </div>
 
                   <div>
                     <label className="block font-bold text-on-surface-variant uppercase text-[10px] mb-1">
-                      Alternate Phone (Optional - 10 Digits)
+                      Alternate Phone (Optional)
                     </label>
                     <div className="relative">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-code text-on-surface-variant/70 font-semibold select-none">
@@ -1549,7 +1538,7 @@ export default function LedgerAccountBookPage() {
                       <input
                         type="tel"
                         maxLength={10}
-                        placeholder="Optional 10-digit number"
+                        placeholder="Optional number"
                         value={newAlternatePhone}
                         onChange={(e) =>
                           setNewAlternatePhone(
@@ -1559,11 +1548,6 @@ export default function LedgerAccountBookPage() {
                         className="w-full pl-11 pr-2.5 py-1.5 border border-outline-variant bg-surface-container-lowest rounded-sm focus:border-primary outline-none text-xs text-on-surface font-code tracking-wider"
                       />
                     </div>
-                    <span className="text-[10px] text-on-surface-variant/70 mt-0.5 block">
-                      {newAlternatePhone.length > 0
-                        ? `${newAlternatePhone.length}/10 digits`
-                        : "Optional"}
-                    </span>
                   </div>
                 </div>
 
