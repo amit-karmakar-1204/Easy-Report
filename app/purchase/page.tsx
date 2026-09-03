@@ -5,18 +5,22 @@ import {
   Building2,
   CheckCircle2,
   FileCheck,
+  FileSpreadsheet,
   History,
   PackagePlus,
   Plus,
   Printer,
   Receipt,
   RotateCcw,
+  Sparkles,
   Tag,
   Trash2,
   Truck,
+  Upload,
   UserPlus,
   X,
 } from "lucide-react";
+import ImportBillModal from "@/components/ImportBillModal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
@@ -108,6 +112,17 @@ export default function StockInwardPage() {
   const [lastLoggedPurchase, setLastLoggedPurchase] = useState<Purchase | null>(
     null,
   );
+
+  // Import Bill Modal State
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  const handleImportExtractedItems = (items: PurchaseItem[]) => {
+    setStagedItems((prev) => [...prev, ...items]);
+    setBannerFeedback(
+      `Successfully imported ${items.length} item${items.length === 1 ? "" : "s"} from document!`,
+    );
+    setTimeout(() => setBannerFeedback(null), 5000);
+  };
 
   // Dynamic list of unique saved suppliers (from parties and previous purchases)
   const supplierSuggestions = useMemo(() => {
@@ -852,9 +867,20 @@ export default function StockInwardPage() {
         onSubmit={handleAddStagedItem}
         className="bg-surface-container-lowest border border-outline-variant rounded-sm p-4 space-y-3"
       >
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-bold text-primary uppercase tracking-wider">
-            Add Inward Item Entry
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider">
+              Add Inward Item Entry
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowImportModal(true)}
+              className="px-2.5 py-1 bg-primary text-on-primary hover:opacity-90 rounded text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              title="Import & extract items from Invoice Image, PDF, Excel, or CSV"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Import Bill (Image / PDF / Excel)</span>
+            </button>
           </div>
           <span className="text-[11px] text-on-surface-variant">
             ⚡ Selecting product or typing batch code auto-fills Rate & MRP
@@ -1067,8 +1093,8 @@ export default function StockInwardPage() {
 
       {/* Staged Inventory Table */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-sm flex flex-col min-h-[300px] overflow-hidden shadow-none">
-        <div className="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="p-3 border-b border-outline-variant bg-surface-container-low flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-bold text-xs text-on-surface uppercase tracking-wider">
               Staged Inward Items
             </h3>
@@ -1078,9 +1104,19 @@ export default function StockInwardPage() {
               </span>
             )}
           </div>
-          <span className="text-[11px] font-semibold text-on-surface-variant bg-surface border border-outline-variant px-2 py-0.5 rounded-xs">
-            {stagedItems.length} Items Pending Log
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowImportModal(true)}
+              className="px-2.5 py-1 bg-surface-container-high hover:bg-primary hover:text-on-primary border border-outline-variant rounded text-xs font-bold text-on-surface flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5 text-primary" />
+              <span>Import Bill</span>
+            </button>
+            <span className="text-[11px] font-semibold text-on-surface-variant bg-surface border border-outline-variant px-2 py-0.5 rounded-xs">
+              {stagedItems.length} Items Pending Log
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto flex-1">
@@ -1653,6 +1689,13 @@ export default function StockInwardPage() {
           </div>
         </div>
       )}
+
+      {/* Import Bill Modal */}
+      <ImportBillModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImportExtractedItems}
+      />
     </div>
   );
 }
